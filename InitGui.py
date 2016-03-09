@@ -124,6 +124,24 @@ class makePlane:
 FreeCADGui.addCommand('makePlane', makePlane())
 
 
+class makePrism:
+
+	def Activated(self):
+		print "run import ..."
+		import reconstruction.makePrism
+		reload(reconstruction.makePrism)
+		print "okay"
+		reconstruction.makePrism.run()
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : 'Std_Tool2', 
+			'MenuText': 'makePrism', 
+			'ToolTip': 'makePrism'
+		}
+
+FreeCADGui.addCommand('makePrism', makePrism())
+
 
 
 class Reconstruction ( Workbench ):
@@ -137,7 +155,7 @@ class Reconstruction ( Workbench ):
 
 	def Initialize(self):
 		
-		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane"]
+		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism"]
 		self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)
 		Log ("Loading Reconstruction Workbench ... done\n")
