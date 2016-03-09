@@ -33,7 +33,12 @@ windowCreated = 0
 class mydialog:
 
 	def Activated(self):
-		FreeCAD.Console.PrintMessage("run  ...  not implemented")
+		FreeCAD.Console.PrintMessage("run  ... ")
+		import reconstruction.create_perspective_tool
+		reload(reconstruction.create_perspective_tool)
+		print "okay"
+		reconstruction.create_perspective_tool.run()
+
 
 	def GetResources(self):
 		return {
@@ -42,7 +47,25 @@ class mydialog:
 			'ToolTip': ''
 		}
 
-FreeCADGui.addCommand('Part Creator', mydialog())
+FreeCADGui.addCommand('Import Image', mydialog())
+
+class houghlines:
+
+	def Activated(self):
+		print "run import ..."
+		import reconstruction.houghlines
+		reload(reconstruction.houghlines)
+		print "okay"
+		reconstruction.houghlines.run()
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : 'Std_Tool2', 
+			'MenuText': 'houghlines', 
+			'ToolTip': 'houghlines'
+		}
+
+FreeCADGui.addCommand('houghlines', houghlines())
 
         
 class makeSphere:
@@ -114,7 +137,7 @@ class Reconstruction ( Workbench ):
 
 	def Initialize(self):
 		
-		cmds= ["Part Creator","makeSphere","makeCylinder","makePlane"]
+		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane"]
 		self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)
 		Log ("Loading Reconstruction Workbench ... done\n")
