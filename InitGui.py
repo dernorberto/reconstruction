@@ -143,6 +143,90 @@ class makePrism:
 FreeCADGui.addCommand('makePrism', makePrism())
 
 
+class makeCVX:
+
+	def Activated(self):
+		print "run import ..."
+		import reconstruction.CV
+		reload(reconstruction.CV)
+		print "okay"
+		reconstruction.CV.createCV()
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : 'Std_Tool2', 
+			'MenuText': 'create openCV Filter', 
+			'ToolTip': 'makeCV'
+		}
+
+# FreeCADGui.addCommand('makeCV', makeCV())
+
+
+
+
+
+def runme(s):
+	exec("import "+s)
+	exec("reload("+s+")")
+	rc=eval( s+".run()")
+	return rc
+
+class makeCV_master:
+	global runme
+	def __init__(self,classname='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
+		self.classname=classname
+		self.pixmap=pixmap
+		if menutext==None:
+			self.menutext="create " + self.classname
+		else:
+			self.menutext=menutext
+		if tooltip==None: 
+			self.tooltip="create a new " + self.classname
+		else:
+			self.tooltip=tooltip
+
+
+	def Activated(self):
+		s="reconstruction." + self.classname
+		print "run import ..." + s
+		t=runme(s)
+		print t.Label
+		print  s + " done, okay"
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : self.pixmap, 
+			'MenuText': self.menutext, 
+			'ToolTip': self.tooltip
+		}
+
+cvCmds=[]
+
+def createcmd(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
+	global makeCV_master
+	print cmd
+	FreeCADGui.addCommand(cmd, makeCV_master(cmd,pixmap,menutext,tooltip))
+	print "hh"
+	cvCmds.append(cmd)
+	print "yyy"
+
+#----------------------------------------
+
+
+
+print "huhu"
+createcmd('CV','Std_Tool2','cv base','cv tipp2')
+createcmd('CV_demo','Std_Tool3','demo ','demo tipp2')
+createcmd('CV_cornerharris','Std_Tool1','corner Harris','corner Harris')
+createcmd('CV_canny','Std_Tool2','edge Canny','edge Canny')
+createcmd('CV_opening','Std_Tool3','opening','opening')
+createcmd('CV_closing','Std_Tool3','closing','closing')
+print "hahah"
+
+
+#------------------------------------------
+
+
 
 class Reconstruction ( Workbench ):
 	'''Reconstruction'''
@@ -154,8 +238,9 @@ class Reconstruction ( Workbench ):
 		return "Gui::PythonWorkbench"
 
 	def Initialize(self):
-		
-		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism"]
+		global cvCmds
+		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV"]
+		cmds += cvCmds
 		self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)
 		Log ("Loading Reconstruction Workbench ... done\n")
