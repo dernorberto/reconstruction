@@ -214,14 +214,13 @@ def createcmd(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
 
 
 
-print "huhu"
-createcmd('CV','Std_Tool2','cv base','cv tipp2')
-createcmd('CV_demo','Std_Tool3','demo ','demo tipp2')
+#createcmd('CV','Std_Tool2','cv base','cv tipp2')
+#createcmd('CV_demo','Std_Tool3','demo ','demo tipp2')
 createcmd('CV_cornerharris','Std_Tool1','corner Harris','corner Harris')
 createcmd('CV_canny','Std_Tool2','edge Canny','edge Canny')
 createcmd('CV_opening','Std_Tool3','opening','opening')
 createcmd('CV_closing','Std_Tool3','closing','closing')
-print "hahah"
+createcmd('CV_combiner','Std_Tool1','combiner','combiner')
 
 
 #------------------------------------------

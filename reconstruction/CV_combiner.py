@@ -33,17 +33,17 @@ import reconstruction.miki as miki
 reload(miki)
 
 
-class _CV_cornerharris(_CV):
+class _CV_combiner(_CV):
 
 	def __init__(self,obj,icon='/icons/animation.png'):
 		_CV.__init__(self,obj,icon)
-		_ViewProviderCV_cornerharris(obj.ViewObject,icon)
+		_ViewProviderCV_combiner(obj.ViewObject,icon)
 
 	def execute(self,obj):
 		obj.ViewObject.Proxy.animpingpong()
 		return
 
-class _ViewProviderCV_cornerharris(_ViewProviderCV):
+class _ViewProviderCV_combiner(_ViewProviderCV):
 	
 	def __init__(self,vobj,icon):
 		_ViewProviderCV.__init__(self,vobj,icon)
@@ -58,39 +58,42 @@ class _ViewProviderCV_cornerharris(_ViewProviderCV):
 
 	def animpingpong(self):
 		obj=self.Object
-		img=None
-		if not obj.imageFromNode:
-			img = cv2.imread(obj.imageFile)
-		else:
-			img = obj.imageNode.ViewObject.Proxy.img.copy()
+		
+		res=None
+		for t in obj.OutList:
+			print t.Label
+			img=t.ViewObject.Proxy.img.copy()
+			if res==None:
+				res=img.copy()
+			else:
+				#rr=cv2.subtract(res,img)
+				#rr=cv2.add(res,img)
+				
+				aw=0.0+float(obj.aWeight)/100
+				bw=0.0+float(obj.bWeight)/100
+				print aw
+				print bw
+				if obj.aInverse:
+					# b umsetzen
+					ret, mask = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY)
+					img=cv2.bitwise_not(mask)
+				rr=cv2.addWeighted(res,aw,img,bw,0)
+				res=rr
+		#b,g,r = cv2.split(res)
+		cv2.imshow(obj.Label,res)
+		#cv2.imshow(obj.Label +" b",b)
+		#cv2.imshow(obj.Label + " g",g)
+		#cv2.imshow(obj.Label + " r",r)
 
-		print (obj.blockSize,obj.ksize,obj.k)
-		try:
-			gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-			gray = np.float32(gray)
-			print "normale"
-		except:
-			im2=cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
-			gray = cv2.cvtColor(im2,cv2.COLOR_RGB2GRAY)
-			print "except"
-
-		dst = cv2.cornerHarris(gray,obj.blockSize,obj.ksize*2+1,obj.k/10000)
-		dst = cv2.dilate(dst,None)
-
-		img[dst>0.01*dst.max()]=[0,0,255]
-
-		dst2=img.copy()
-		dst2[dst<0.01*dst.max()]=[255,255,255]
-		dst2[dst>0.01*dst.max()]=[0,0,255]
-
+		res=img
+		
 		if not obj.matplotlib:
 			cv2.imshow(obj.Label,img)
 		else:
 			from matplotlib import pyplot as plt
-			plt.subplot(121),plt.imshow(img,cmap = 'gray')
-			plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
-			plt.subplot(122),plt.imshow(dst2,cmap = 'gray')
-			plt.title('Corner Image'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(121),
+			plt.imshow(img,cmap = 'gray')
+			plt.title(obj.Label), plt.xticks([]), plt.yticks([])
 			plt.show()
 
 		self.img=img
@@ -157,6 +160,27 @@ VerticalLayout:
 '''
 
 
+s6='''
+VerticalLayout:
+		id:'main'
+
+		QtGui.QLabel:
+			setText:"***     O P E N   C V     ***"
+		QtGui.QLabel:
+
+		QtGui.QLabel:
+			setText:"***    Combiner  ***"
+		QtGui.QLabel:
+
+
+		QtGui.QPushButton:
+			id:'moveBtn'
+			setText: "update view"
+			clicked.connect: app.create
+			setEnabled: False
+'''
+
+
 class MyApp(object):
 
 	def create(self):
@@ -175,19 +199,23 @@ class MyApp(object):
 		self.obj.Proxy.execute(self.obj)
 
 
-def createCV_cornerharris():
-	print "create CV  cornerharris ... 2"
+def createCV_combiner():
+	print "create CV  combiner ... 2"
 	obj= createCV(True)
-	obj.Label='Harris'
+	obj.Label='Combiner'
 
-	obj.addProperty('App::PropertyInteger','blockSize',"cornerHarris").blockSize=2
-	obj.addProperty('App::PropertyInteger','ksize',"cornerHarris").ksize=3
-	obj.addProperty('App::PropertyFloat','k',"cornerHarris").k=1.0
+	obj.addProperty('App::PropertyInteger','aWeight',"combiner").aWeight=80
+	obj.addProperty('App::PropertyInteger','bWeight',"combiner").bWeight=20
 
-	_CV_cornerharris(obj,__dir__+ '/icons/icon2.svg')
+	obj.addProperty('App::PropertyBool','aInverse',"combiner").aInverse=False
+
+	obj.addProperty('App::PropertyInteger','ksize',"combiner").ksize=3
+	obj.addProperty('App::PropertyFloat','k',"combiner").k=1.0
+
+	_CV_combiner(obj,__dir__+ '/icons/icon2.svg')
 	miki2=miki.Miki2(MyApp,s6,obj)
 
 	return obj
 
 def run():
-	 return createCV_cornerharris()
+	 return createCV_combiner()
