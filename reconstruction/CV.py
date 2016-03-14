@@ -91,7 +91,7 @@ class _CV(object):
 		self.obj2 = obj
 		self.Lock=False
 		self.Changed=False
-		# _ViewProviderActor(obj.ViewObject,icon) 
+		_ViewProviderCV(obj.ViewObject,icon) 
 
 
 	def initPlacement(self,tp):
@@ -129,21 +129,9 @@ class _CV(object):
 				FreeCAD.ty=sob
 				say(sob.Label)
 				sob.Proxy.step(now)
-		
-	def move(self,vec=FreeCAD.Vector(0,0,0)):
-		FreeCAD.uu=self
-		say("move " + str(self.obj2.Label) + " vector=" +str(vec))
-
-	def rot(self,angle=0):
-		FreeCAD.uu=self
-		say("rotate " + str(self.obj2.Label) + " angle=" +str(angle))
-
 
 	def execute(self,obj):
 		return
-
-
-
 
 	def attach(self,vobj):
 		self.Object = vobj.Object
@@ -163,10 +151,14 @@ class _CV(object):
 class _ViewProviderCV():
  
 	def __init__(self,vobj,icon='/icons/icon1.svg'):
+		print "viewwproergrger"
 		self.iconpath = icon
 		print self.iconpath
 		self.Object = vobj.Object
 		vobj.Proxy = self
+		self.cmenu=[]
+		self.emenu=[]
+
 		self.vers=__vers__
  
 	def getIcon(self):
@@ -303,24 +295,28 @@ VerticalLayout:
 		print self.obj
 
 
-def createCV():
+def createCV(base=False):
 	print "create CV ..."
 	obj=FreeCAD.ActiveDocument.addObject('App::DocumentObjectGroupPython','Image')
-	obj.addProperty('App::PropertyFile','imageFile',"1 vanishing").imageFile='/home/thomas/Bilder/c1.png'
-	obj.addProperty('App::PropertyVector','zpol',"1 vanishing")
-	obj.addProperty('App::PropertyFloat','width',"4 size").width=20000
 
-	_CV(obj,'/icons/bounder.png')
-	_ViewProviderCV(obj.ViewObject,__dir__+ '/icons/icon1.svg') 
+	obj.addProperty('App::PropertyFile','imageFile',"base").imageFile='/home/thomas/Bilder/c1.png'
+	obj.addProperty('App::PropertyLink','imageNode',"base")
+	obj.addProperty('App::PropertyBool','imageFromNode',"base").imageFromNode=False
+	obj.addProperty('App::PropertyBool','matplotlib',"base").matplotlib=False
 
-	app=MyApp()
-	miki2=miki.Miki()
-	miki2.app=app
-	app.root=miki2
-	app.obj=obj
+	if not base:
+		_CV(obj,'/icons/bounder.png')
+		_ViewProviderCV(obj.ViewObject,__dir__+ '/icons/icon1.svg') 
 
-	obj.ViewObject.Proxy.cmenu.append(["Dialog",lambda:miki2.run(MyApp.s6)])
-	obj.ViewObject.Proxy.edit= lambda:miki2.run(MyApp.s6)
+		app=MyApp()
+		miki2=miki.Miki()
+		miki2.app=app
+		app.root=miki2
+		app.obj=obj
+
+		obj.ViewObject.Proxy.cmenu.append(["Dialog",lambda:miki2.run(MyApp.s6)])
+		obj.ViewObject.Proxy.edit= lambda:miki2.run(MyApp.s6)
+	
 	return obj
 
 

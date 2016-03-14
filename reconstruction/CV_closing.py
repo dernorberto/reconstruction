@@ -25,7 +25,7 @@ Gui=FreeCADGui
 import Draft
 
 
-from reconstruction.CV import _CV, _ViewProviderCV
+from reconstruction.CV import _CV, _ViewProviderCV, createCV
 
 
 

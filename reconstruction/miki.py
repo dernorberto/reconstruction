@@ -10,6 +10,8 @@
 
 
 
+
+
 def creatorFunction(name):
 	print "creator Function :", name
 #	if name.startswith('Part::'):
@@ -24,6 +26,10 @@ def creatorFunction(name):
 	if name.startswith('QtGui'):
 		return name+"()"
 # QtGui.QPushButton()
+	if name.startswith('MyQtGui'):
+		return name+"()"
+
+
 
 	if name.startswith('Animation'):
 		[a,c]=name.split('.')
@@ -49,6 +55,9 @@ import PySide
 from PySide import QtCore, QtGui, QtSvg
 
 import traceback,sys
+
+
+
 def sayexc(mess=''):
 	exc_type, exc_value, exc_traceback = sys.exc_info()
 	ttt=repr(traceback.format_exception(exc_type, exc_value,exc_traceback))
@@ -496,3 +505,11 @@ class Miki():
 
 
 
+class Miki2(Miki):
+	def __init__(self,App,layoutstring,obj):
+		Miki.__init__(self)
+		self.app=App()
+		self.app.root=self
+		self.app.obj=obj
+		obj.ViewObject.Proxy.cmenu.append(["Dialog",lambda:self.run(layoutstring)])
+		obj.ViewObject.Proxy.edit= lambda:self.run(layoutstring)
