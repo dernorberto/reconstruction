@@ -204,11 +204,8 @@ cvCmds=[]
 
 def createcmd(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
 	global makeCV_master
-	print cmd
 	FreeCADGui.addCommand(cmd, makeCV_master(cmd,pixmap,menutext,tooltip))
-	print "hh"
 	cvCmds.append(cmd)
-	print "yyy"
 
 #----------------------------------------
 

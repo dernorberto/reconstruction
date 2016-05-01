@@ -8,8 +8,12 @@
 #-------------------------------------------------
 
 __vers__="13.03.2016  0.0"
-__dir__='/home/thomas/.FreeCAD/Mod/reconstruction'
+# __dir__='/home/thomas/.FreeCAD/Mod/reconstruction/zz'
 
+
+import os
+
+__dir__ = os.path.dirname(__file__)
 
 import sympy
 from sympy import Point3D,Plane

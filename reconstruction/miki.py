@@ -72,7 +72,7 @@ def sayexc(mess=''):
 #***************
 YourSpecialCreator=Animation.createManager
 
-def  fv(name="vertical"):
+def  fv(name="vertical",title=''):
 	w=QtGui.QWidget()
 	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
@@ -83,11 +83,12 @@ def  fv(name="vertical"):
 
 #	pB= QtGui.QLabel(name)
 #	layout.addWidget(pB)
+	if title <>'': w.setWindowTitle(title)
 	w.show()
 	w.layout=layout
 	return w
 
-def  fh(name="horizontal"):
+def  fh(name="horizontal",title=''):
 	w=QtGui.QWidget()
 ###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 	layout = QtGui.QHBoxLayout()
@@ -96,13 +97,62 @@ def  fh(name="horizontal"):
 #	pB= QtGui.QLabel(name)
 #	pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 #	layout.addWidget(pB)
+	if title <>'': w.setWindowTitle(title)
 	w.show()
 	w.layout=layout
 	return w
 
 
+def  ftab2(name="horizontal"):
+	w=QtGui.QWidget()
+###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	layout = QtGui.QHBoxLayout()
+	layout.setAlignment(QtCore.Qt.AlignLeft)
+	w.setLayout(layout)
+	pB= QtGui.QLabel(name)
+	pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	layout.addWidget(pB)
+	w.show()
+
+	w1=QtGui.QWidget()
+###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	layout1 = QtGui.QVBoxLayout()
+	layout1.setAlignment(QtCore.Qt.AlignLeft)
+
+	w1.setLayout(layout1)
+
+	pB1= QtGui.QLabel("name1")
+	layout1.addWidget(pB1)
+	pB1= QtGui.QLabel("name1")
+	layout1.addWidget(pB1)
+
+	layout.addWidget(w1)
+
+	w2=QtGui.QWidget()
+###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	layout2 = QtGui.QVBoxLayout()
+	layout2.setAlignment(QtCore.Qt.AlignLeft)
+
+	w2.setLayout(layout2)
+
+	pB2= QtGui.QLabel("name2")
+	layout2.addWidget(pB2)
+	pB1= QtGui.QLabel("name1")
+	layout2.addWidget(pB1)
+
+	layout.addWidget(w2)
+	
+
+
+
+	w.layout=layout
+	return w
+
+
+
+
 VerticalLayout=fv
-HorzontalLayout=fh
+HorizontalLayout=fh
 
 #***************
 
@@ -138,7 +188,7 @@ class Miki():
 				rs.append(r)
 				r=[-1,0,0,'']
 			line += 1
-			print l
+#			print l
 			if l.startswith('#:'):
 				res=re.search("#:\s*(\S.*)",l)
 				r=[l,line,-1,'cmd',res.group(1)]
@@ -195,11 +245,11 @@ class Miki():
 					print app
 					r=[l,line,parent,"att val",res.group(1),eval(res.group(2))]
 					if res.group(1) =='Name':
-						print "setze Namen von parent"
-						print parent
-						print rs[parent]
+#						print "setze Namen von parent"
+#						print parent
+#						print rs[parent]
 						rs[parent].append(res.group(2))
-						print rs[parent]
+#						print rs[parent]
 					continue
 
 				res=re.search("\s*(\S):\s*([^:]\S.*)",st)
@@ -207,15 +257,15 @@ class Miki():
 					print app
 					r=[l,line,parent,"att val",res.group(1),eval(res.group(2))]
 					if res.group(1) =='Name':
-						print "setze Namen von parent"
-						print parent
-						print rs[parent]
+#						print "setze Namen von parent"
+#						print parent
+#						print rs[parent]
 						rs[parent].append(res.group(2))
-						print rs[parent]
+#						print rs[parent]
 					continue
 				else:
-					print "tttt"
-					print st
+#					print "tttt"
+#					print st
 					res=re.search("(\S+):",st)
 					if res:    
 						r=[l,line,parent,"obj", res.group(1),'no anchor']
@@ -468,13 +518,15 @@ class Miki():
 				FreeCAD.Console.PrintError([p,c])
 
 
-	def run(self,string):
+	def run(self,string,cmd=None):
 		print "parse2 ...."
 		self.parse2(string)
 		print "build ..."
 		self.build()
 		print "showSo ..."
 		self.showSo()
+		if cmd<>None:
+			cmd()
 		print "done"
 
 
