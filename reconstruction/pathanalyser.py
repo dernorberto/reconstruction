@@ -9,6 +9,9 @@
 
 from say import *
 
+import reconstruction.mpl
+reload(reconstruction.mpl)
+
 
 def computeDirection(p,N,x,y):
 	''' mean direction of  N points at position p in  datalistes x,y'''
@@ -246,6 +249,7 @@ def run(pl2,nr,N,threshold,mplw=None,createFC=False,obj=None):
 	mplw.subplot()
 
 	# prepare data rows for x,y
+	print (nr,len(pl2))
 	path=pl2[nr]
 	x=[p[0] for p in path]
 	y=[p[1] for p in path]

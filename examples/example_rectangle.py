@@ -1,5 +1,5 @@
 #
-#  threshold tests
+#  hand drawn rectangle
 #
 
 import reconstruction.CV2
@@ -15,11 +15,8 @@ if App.ActiveDocument==None:
 
 
 
-
 import reconstruction
 fn=reconstruction.__path__[0] + "/../testdata/bn_990.png"
-#fn=reconstruction.__path__[0] + "/../testdata/bn_511.png"
-#fn="/home/thomas/Bilder/bn_917_schwelle.png"
 
 t=createCV('ImageFile')
 t.sourceFile=fn
@@ -36,29 +33,11 @@ t3.sourceObject=t2
 t3.threshold=1
 FreeCAD.ActiveDocument.recompute()
 
+t5=createCV("PathAnalyzer")
+t5.sourceObject=t3
+t5.pathSelection=True
+t5.N=5
+t5.Threshold=143
+t5.useCanny=False
 
-
-
-
-t4=createCV('Mixer')
-t4.sourceObject=t2
-t4.source2Object=t3
-t4.inverse2=True
-t4.inverse=True
-t4.flipOrder=True
-t4.zoom=False
-FreeCAD.ActiveDocument.recompute()
-
-
-
-
-
-
-
-
-for j in [t,t2,t3,t4]:
-	try:
-		App.activeDocument().recompute()
-		j.ViewObject.Proxy.setEdit(j.ViewObject)
-	except:
-		App.activeDocument().recompute()
+App.activeDocument().recompute()

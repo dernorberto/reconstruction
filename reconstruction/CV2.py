@@ -613,7 +613,7 @@ def run_pathfinder (obj,app):
 	
 	# pf.showPics=False
 	
-	pl2=pf.run(obj.minPathPoints,obj.showPics)
+	pl2=pf.run(obj.minPathPoints,obj.showPics,obj)
 	obj.Proxy.pl2=pl2
 	obj.Proxy.img=pf.imgOut
 

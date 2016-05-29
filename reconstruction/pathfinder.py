@@ -104,7 +104,7 @@ def runpath(ed,x,y):
 
 	while not fin:
 		fin=True
-		for p in [(x+1,y),(x+1,y+1),(x+1,y-1),(x,y+1),(x,y-1),(x-1,y),(x-1,y-1),(x-1,y-1)]:
+		for p in [(x+1,y),(x+1,y+1),(x+1,y-1),(x,y+1),(x,y-1),(x-1,y),(x-1,y-1),(x-1,y+1)]:
 			if p not in path and ed[p[1]][p[0]]>0:
 				ed[p[1]][p[0]]=0
 				path.append(p)
@@ -171,7 +171,7 @@ def runningMeanFast(x, N):
 
 class PathFinder():
 
-	def run(self,minPathPoints,showPics):
+	def run(self,minPathPoints,showPics,obj):
 
 		try:
 			img=self.img
@@ -180,7 +180,10 @@ class PathFinder():
 			fn=self.fn
 			img = cv2.imread(fn,0)
 
-		edges = cv2.Canny(img,10,255)
+		if obj.useCanny:
+			edges = cv2.Canny(img,10,255)
+		else:
+			edges = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
 		ed2=edges
 		ed2 = 0*ed2

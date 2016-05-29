@@ -500,7 +500,7 @@ configMode['PathAnalyzer'] = {
 		['hideLegend','App::PropertyBool','PathAnalyzer',True],
 		['showPics','App::PropertyBool','PathAnalyzer',False],
 		['maxRadius','App::PropertyFloat','PathAnalyzer',200],
-
+		['useCanny','App::PropertyBool','PathAnalyzer',True],
 	],
 
 	'widgets' : [ 
