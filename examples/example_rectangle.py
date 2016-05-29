@@ -2,6 +2,7 @@
 #  hand drawn rectangle
 #
 
+from say import *
 import reconstruction.CV2
 reload( reconstruction.CV2)
 createCV=reconstruction.CV2.createCV
@@ -20,6 +21,9 @@ fn=reconstruction.__path__[0] + "/../testdata/bn_990.png"
 
 t=createCV('ImageFile')
 t.sourceFile=fn
+t.subX1=100
+t.subY0=200
+
 t.invert=True
 
 t2=createCV('Morphing')

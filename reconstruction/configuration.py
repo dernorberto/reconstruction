@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+#-------------------------------------------------
+#-- reconstruction workbench
+#--
+#-- microelly 2016 v 0.1
+#--
+#-- GNU Lesser General Public License (LGPL)
+#-------------------------------------------------
+
 #
 # implemented modes
 #
@@ -8,11 +17,12 @@ modes=[
 	'Color','ColorSpace','CannyEdge',
 	'FatColor',
 	'GoodFeaturesToTrack',
+
 	'HSV','HoughLines','HoughLinesPost',
 	'Invert',
 	'Mixer','Morphing',
-	'Pathes',
-	'PathAnalyzer',
+
+	'Pathes', 'PathAnalyzer',
 	'Skeleton',
 	'Threshold']
 
@@ -22,21 +32,23 @@ configMode= {}
 configMode['test']= { 'props' : [],}
 
 configMode['BlobDetector'] = {
+
 	'props' : [
-		['Convexity2','App::PropertyInteger','CannyEdge',100],
-		['Area','App::PropertyInteger','CannyEdge',200],
-		['showBlobs','App::PropertyBool','CannyEdge',True],
-		['Convexity','App::PropertyInteger','CannyEdge',0],
+		['Convexity2','App::PropertyInteger','BlobDetector',100],
+		['Area','App::PropertyInteger','BlobDetector',200],
+		['showBlobs','App::PropertyBool','BlobDetector',True],
+		['Convexity','App::PropertyInteger','BlobDetector',0],
 	],
 
-
 	'widgets' : [ 
+
 		{
 			'id':'Area', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 		{
 			'id':'showBlobs', 
 			'params' : ['checkBox'],
@@ -51,58 +63,56 @@ configMode['BlobDetector'] = {
 			'w2p' : lambda x:x
 		},
 
-#		{
-#			'id':'Convexity', 
-#			'params' : ['dialer'],
-#			'p2w' : lambda x:x,
-#			'w2p' : lambda x:x
-#		},
 	],
 }
 
 
 configMode['CannyEdge'] = {
-	'a' : {2:5},
+
 	'props' : [
 		['minVal','App::PropertyInteger','CannyEdge',100],
 		['maxVal','App::PropertyInteger','CannyEdge',200],
 		
 	],
 
-
 	'widgets' : [ 
+
 		{
 			'id':'minVal', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 		{ 
 			'id' :'maxVal',
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x		
 		},
+
 	]
-	
 }
 
 configMode['GoodFeaturesToTrack'] = {
+
 	'props' : [
-		['maxCorners','App::PropertyInteger','CannyEdge',25],
-		['qualityLevel','App::PropertyFloat','CannyEdge',0.01],
-		['minDistance','App::PropertyInteger','CannyEdge',100],
-		['useHarrisDetector','App::PropertyBool','CannyEdge',False],
-		['k','App::PropertyFloat','CannyEdge',0.04],
+		['maxCorners','App::PropertyInteger','GoodFeaturesToTrack',25],
+		['qualityLevel','App::PropertyFloat','GoodFeaturesToTrack',0.01],
+		['minDistance','App::PropertyInteger','GoodFeaturesToTrack',100],
+		['useHarrisDetector','App::PropertyBool','GoodFeaturesToTrack',False],
+		['k','App::PropertyFloat','GoodFeaturesToTrack',0.04],
 	],
 
 	'widgets' : [ 
+
 		{
 			'id':'maxCorners', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 		{
 			'id':'minDistance', 
 			'params' : ['dialer'],
@@ -110,7 +120,7 @@ configMode['GoodFeaturesToTrack'] = {
 			'w2p' : lambda x:x
 		},
 
-	
+
 	]
 }
 
@@ -125,11 +135,10 @@ configMode['HoughLines'] = {
 		['threshold','App::PropertyInteger','HoughLines',10],
 		['minLineLength','App::PropertyInteger','HoughLines',25],
 		['maxLineGap','App::PropertyInteger','HoughLines',10],
-		
-		
-		
 	],
+
 	'widgets' : [ 
+
 		{
 			'id':'threshold', 
 			'params' : ['dialer'],
@@ -160,49 +169,49 @@ configMode['HoughLines'] = {
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 	]
 }
-
 
 
 configMode['HoughLinesPost'] = {
 
 	'props': [
-		['epsilon','App::PropertyInteger','HoughLines',100],
-		['count','App::PropertyInteger','HoughLines',200],
-		
-		
-		
+		['epsilon','App::PropertyInteger','HoughLinesPost',100],
+		['count','App::PropertyInteger','HoughLinesPost',200],
 	],
+
 	'widgets' : [ 
+
 		{
 			'id':'epsilon', 
 			'params' : ['dialernr'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 		{
 			'id':'count', 
 			'params' : ['dialernr'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 	]
 }
+
 
 configMode['HSV'] = {
 
 	'props': [
-		['onColor','App::PropertyBool','HoughLines',True],
-		['invertColor','App::PropertyBool','HoughLines',False],
-		['valueColor','App::PropertyInteger','HoughLines',130],
-		['deltaColor','App::PropertyInteger','HoughLines',110],
-		
-		
-		
-		
+		['onColor','App::PropertyBool','HSV',True],
+		['invertColor','App::PropertyBool','HSV',False],
+		['valueColor','App::PropertyInteger','HSV',130],
+		['deltaColor','App::PropertyInteger','HSV',110],
 	],
+
 	'widgets' : [ 
+
 		{
 			'id':'valueColor', 
 			'params' : ['dialer'],
@@ -215,30 +224,25 @@ configMode['HSV'] = {
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 	]
 }
 
 
 configMode['ImageFile'] = {
 
-
 	'props' : [
-		['minVal','App::PropertyInteger','CannyEdge',100],
-		['maxVal','App::PropertyInteger','CannyEdge',200],
-		['testSlider','App::PropertyInteger','CannyEdge',10],
-		['testDialer','App::PropertyInteger','CannyEdge',50],
-		['testLineEdit','App::PropertyString','CannyEdge',"test"],
-		['testcheckBox','App::PropertyBool','CannyEdge',True],
+		['minVal','App::PropertyInteger','ImageFile',100],
+		['maxVal','App::PropertyInteger','ImageFile',200],
+		['testSlider','App::PropertyInteger','ImageFile',10],
+		['testDialer','App::PropertyInteger','ImageFile',50],
+		['testLineEdit','App::PropertyString','ImageFile',"test"],
+		['testcheckBox','App::PropertyBool','ImageFile',True],
 	],
 
 
 	'widgets' : [ 
-#		{ 
-#			'id' :'maxVal',
-#			'params' : ['dialer'],
-#			'p2w' : lambda x:x+10,
-#			'w2p' : lambda x:x-10		
-#		},
+
 		{
 			'id':'testDialer', 
 			'params' : ['dialer'],
@@ -264,28 +268,19 @@ configMode['ImageFile'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
 	]
-
 }
 
 
 configMode['Skeleton'] = {
 
 	'props' : [
-		['threshold','App::PropertyInteger','CannyEdge',128],
-		['otsu','App::PropertyBool','CannyEdge',True],
+		['threshold','App::PropertyInteger','Skeleton',128],
+		['otsu','App::PropertyBool','Skeleton',True],
 	],
 
-
 	'widgets' : [ 
-#		{ 
-#			'id' :'maxVal',
-#			'params' : ['dialer'],
-#			'p2w' : lambda x:x+10,
-#			'w2p' : lambda x:x-10		
-#		},
+
 		{
 			'id':'threshold', 
 			'params' : ['dialer'],
@@ -300,24 +295,21 @@ configMode['Skeleton'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
 	]
-
 }
-
 
 
 
 configMode['Color'] = {
 
 	'props' : [
-		['red','App::PropertyBool','CannyEdge',False],
-		['green','App::PropertyBool','CannyEdge',False],
-		['blue','App::PropertyBool','CannyEdge',False],
+		['red','App::PropertyBool','Color',False],
+		['green','App::PropertyBool','Color',False],
+		['blue','App::PropertyBool','Color',False],
 	],
 
 	'widgets' : [ 
+
 		{
 			'id':'red', 
 			'params' : ['checkBox'],
@@ -339,38 +331,32 @@ configMode['Color'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
 	]
-
 }
 
 
 configMode['Mixer'] = {
 
 	'props' : [
-		['source2Object','App::PropertyLink','CannyEdge',None],
-		['sourceOffsetX','App::PropertyInteger','CannyEdge',0],
-		['sourceOffsetY','App::PropertyInteger','CannyEdge',0],
-		['modeMixer','App::PropertyEnumeration','CannyEdge',['addWeighted','add',"or"]],
-		['weight','App::PropertyInteger','CannyEdge',70],
-		['flipOrder','App::PropertyBool','CannyEdge',False],
-		['inverse','App::PropertyBool','CannyEdge',False],
-		['inverse2','App::PropertyBool','CannyEdge',False],
-		
-		['zoom','App::PropertyBool','CannyEdge',True],
-		['zoomMode','App::PropertyEnumeration','CannyEdge',['leftup','rightup',"middle"]],
-		['zoomX','App::PropertyInteger','CannyEdge',0],
-		['zoomX2','App::PropertyInteger','CannyEdge',100],
-		['zoomY','App::PropertyInteger','CannyEdge',50],
-		['zoomY2','App::PropertyInteger','CannyEdge',100],
+		['source2Object','App::PropertyLink','Mixer',None],
+		['sourceOffsetX','App::PropertyInteger','Mixer',0],
+		['sourceOffsetY','App::PropertyInteger','Mixer',0],
+		['modeMixer','App::PropertyEnumeration','Mixer',['addWeighted','add',"or"]],
+		['weight','App::PropertyInteger','Mixer',70],
+		['flipOrder','App::PropertyBool','Mixer',False],
+		['inverse','App::PropertyBool','Mixer',False],
+		['inverse2','App::PropertyBool','Mixer',False],
 
-		
-
-#		['pathname','App::PropertyString','CannyEdge','Path'],
+		['zoom','App::PropertyBool','Mixer',True],
+		['zoomMode','App::PropertyEnumeration','Mixer',['leftup','rightup',"middle"]],
+		['zoomX','App::PropertyInteger','Mixer',0],
+		['zoomX2','App::PropertyInteger','Mixer',100],
+		['zoomY','App::PropertyInteger','Mixer',50],
+		['zoomY2','App::PropertyInteger','Mixer',100],
 	],
 
 	'widgets' : [ 
+
 		{
 			'id':'flipOrder', 
 			'params' : ['checkBox'],
@@ -441,10 +427,7 @@ configMode['Mixer'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
 	]
-
 }
 
 
@@ -452,10 +435,12 @@ configMode['Mixer'] = {
 configMode['Morphing'] = {
 
 	'props' : [
-		['filter','App::PropertyEnumeration','CannyEdge',['erosion','dilation','opening','closing']],
-		['kernel','App::PropertyInteger','CannyEdge',5],
+		['filter','App::PropertyEnumeration','Morphing',['erosion','dilation','opening','closing']],
+		['kernel','App::PropertyInteger','Morphing',5],
 	],
-		'widgets' : [ 
+
+	'widgets' : [ 
+
 			{
 				'id':'kernel', 
 				'params' : ['dialer'],
@@ -471,14 +456,11 @@ configMode['Morphing'] = {
 configMode['Pathes'] = {
 
 	'props' : [
-		['modelColor','App::PropertyEnumeration','CannyEdge',['rainbow','hsv',"prism"]],
-		['pathname','App::PropertyString','CannyEdge','Path'],
+		['modelColor','App::PropertyEnumeration','Pathes',['rainbow','hsv',"prism"]],
+		['pathname','App::PropertyString','Pathes','Path'],
 	],
 
 	'widgets' : [ 
-
-
-
 	]
 
 }
@@ -523,24 +505,19 @@ configMode['PathAnalyzer'] = {
 			'w2p' : lambda x:x
 		},
 
-
 	]
-
 }
 
 
 configMode['Threshold'] = {
 
-
 	'props' : [
-		['globalThresholding','App::PropertyBool','CannyEdge',False],
-		['adaptiveMeanTresholding','App::PropertyBool','CannyEdge',False],
-		['adaptiveGaussianThresholding','App::PropertyBool','CannyEdge',False],
-		['param1','App::PropertyInteger','CannyEdge',100],
-		['param2','App::PropertyInteger','CannyEdge',150],
-
+		['globalThresholding','App::PropertyBool','Threshold',False],
+		['adaptiveMeanTresholding','App::PropertyBool','Threshold',False],
+		['adaptiveGaussianThresholding','App::PropertyBool','Threshold',False],
+		['param1','App::PropertyInteger','Threshold',100],
+		['param2','App::PropertyInteger','Threshold',150],
 	],
-
 
 	'widgets' : [ 
 
@@ -572,7 +549,6 @@ configMode['Threshold'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'param2', 
 			'params' : ['dialer'],
@@ -580,31 +556,23 @@ configMode['Threshold'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
-
 	]
-
 }
 
 
 configMode['ColorSpace'] = {
 
-
 	'props' : [
-		['globalThresholding','App::PropertyBool','CannyEdge',False],
-		['adaptiveMeanTresholding','App::PropertyBool','CannyEdge',False],
-		['adaptiveGaussianThresholding','App::PropertyBool','CannyEdge',False],
-		['h1','App::PropertyInteger','CannyEdge',100],
-		['h2','App::PropertyInteger','CannyEdge',150],
-		['s1','App::PropertyInteger','CannyEdge',100],
-		['s2','App::PropertyInteger','CannyEdge',150],
-		['v1','App::PropertyInteger','CannyEdge',100],
-		['v2','App::PropertyInteger','CannyEdge',255],
-
-
+		['globalThresholding','App::PropertyBool','ColorSpace',False],
+		['adaptiveMeanTresholding','App::PropertyBool','ColorSpace',False],
+		['adaptiveGaussianThresholding','App::PropertyBool','ColorSpace',False],
+		['h1','App::PropertyInteger','ColorSpace',100],
+		['h2','App::PropertyInteger','ColorSpace',150],
+		['s1','App::PropertyInteger','ColorSpace',100],
+		['s2','App::PropertyInteger','ColorSpace',150],
+		['v1','App::PropertyInteger','ColorSpace',100],
+		['v2','App::PropertyInteger','ColorSpace',255],
 	],
-
 
 	'widgets' : [ 
 
@@ -636,14 +604,12 @@ configMode['ColorSpace'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'h2', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
-
 
 		{
 			'id':'s1', 
@@ -652,15 +618,12 @@ configMode['ColorSpace'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'s2', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
-
-
 
 		{
 			'id':'v1', 
@@ -669,7 +632,6 @@ configMode['ColorSpace'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'v2', 
 			'params' : ['dialer'],
@@ -677,29 +639,22 @@ configMode['ColorSpace'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
-
 	]
-
 }
 
 
 configMode['FatColor'] = {
 
-
 	'props' : [
-		['globalThresholding','App::PropertyBool','CannyEdge',False],
-		['adaptiveMeanTresholding','App::PropertyBool','CannyEdge',False],
-		['adaptiveGaussianThresholding','App::PropertyBool','CannyEdge',False],
-		['h1','App::PropertyInteger','CannyEdge',100],
-		['h2','App::PropertyInteger','CannyEdge',150],
-		['s1','App::PropertyInteger','CannyEdge',100],
-		['s2','App::PropertyInteger','CannyEdge',150],
-		['v1','App::PropertyInteger','CannyEdge',100],
-		['v2','App::PropertyInteger','CannyEdge',255],
-
-
+		['globalThresholding','App::PropertyBool','FatColor',False],
+		['adaptiveMeanTresholding','App::PropertyBool','FatColor',False],
+		['adaptiveGaussianThresholding','App::PropertyBool','FatColor',False],
+		['h1','App::PropertyInteger','FatColor',100],
+		['h2','App::PropertyInteger','FatColor',150],
+		['s1','App::PropertyInteger','FatColor',100],
+		['s2','App::PropertyInteger','FatColor',150],
+		['v1','App::PropertyInteger','FatColor',100],
+		['v2','App::PropertyInteger','FatColor',255],
 	],
 
 
@@ -733,14 +688,12 @@ configMode['FatColor'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'h2', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
-
 
 		{
 			'id':'s1', 
@@ -749,15 +702,12 @@ configMode['FatColor'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'s2', 
 			'params' : ['dialer'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
-
-
 
 		{
 			'id':'v1', 
@@ -766,7 +716,6 @@ configMode['FatColor'] = {
 			'w2p' : lambda x:x
 		},
 
-
 		{
 			'id':'v2', 
 			'params' : ['dialer'],
@@ -774,19 +723,5 @@ configMode['FatColor'] = {
 			'w2p' : lambda x:x
 		},
 
-
-
-
 	]
-
 }
-
-
-
-
-
-
-
-
-
-

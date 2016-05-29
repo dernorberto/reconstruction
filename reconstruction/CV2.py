@@ -7,11 +7,12 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-__vers__="08.04.2016  0.0"
+__vers__="29.05.2016  0.1"
 
 import reconstruction.say
 reload(reconstruction.say)
 from reconstruction.say import *
+
 
 try:
 	__dir__ = os.path.dirname(os.path.dirname(__file__))
@@ -36,84 +37,70 @@ reload(reconstruction.tools)
 
 import reconstruction.configuration as config
 reload(reconstruction.configuration) 
-# reload(config)
 modes=config.modes
 
-lasttime=0
+import reconstruction.mpl
+reload(reconstruction.mpl)
 
-global countUpdater
+# global countUpdater
+lasttime=0
 countUpdater=0
 
+
 def updater():
+	''' recompute the active document but no faster than once per second'''
+
 	global countUpdater
 	global lasttime
-#	say("updater " + str(countUpdater))
 
 	t=time.time()
-	if t-lasttime<1:
-		return
+	if t-lasttime<1: return
+
 	if countUpdater>0:
-		say("countre too high - cancel")
+		sayErr("counter to high - update canceled ")
 		return
 
-#	say("run update ....")
 	countUpdater += 1
-	try:
-		App.ActiveDocument.recompute()
-	except:
-		sayexc()
-#		pass
-	say(("t-lasttime",t-lasttime))
+	try: App.ActiveDocument.recompute()
+	except: sayexc()
+
 	lasttime=t
 	countUpdater -= 1
-#	say("done")
-
-
-class MatplotlibWidget(FigureCanvas):
-
-	def __init__(self, parent=None, width=5, height=4, dpi=100):
-
-		super(MatplotlibWidget, self).__init__(Figure())
-		self.setParent(parent)
-		# self.figure = Figure(figsize=(width, height), dpi=dpi) 
-		self.figure = Figure(figsize=(width, height))
-		self.canvas = FigureCanvas(self.figure)
-
-		FigureCanvas.setSizePolicy(self,
-				QtGui.QSizePolicy.Expanding,
-				QtGui.QSizePolicy.Expanding)
-
-		FigureCanvas.updateGeometry(self)
-
-		self.axes = self.figure.add_subplot(111)
-		self.setMinimumSize(self.size()*0.3)
 
 
 def recomputeData(obj):
-	say("recompute " + obj.Label)
-#	obj.touch()
+	say("recompute by " + obj.Label)
 	FreeCAD.ActiveDocument.recompute()
 	say ("recompute done")
 
 
 def resize(img,y,x):
-	say(img.shape)
+	''' resize a cv2 image '''
+
 	yi,xi= img.shape[0],img.shape[1]
+
 	if 1.0*x/xi > 1.0*y/yi:
 		img2=cv2.resize(img,(xi*y/yi,y),interpolation = cv2.INTER_CUBIC)
 	else:
 		img2=cv2.resize(img,(x,yi*x/xi),interpolation = cv2.INTER_CUBIC)
-#	say("resize .y x ..")
-#	say([y,x])
-#	say(img.shape)
-#	say(img2.shape)
 	return img2
 
 
-class MyApp(object):
+def onResize(obj,e,uk):
+	''' event handler for onResize of a matplotlib widget '''
+
+	w=e.size().width()
+	h=e.size().height()
+	print(w,h)
+	obj.plot2()
+	uk(e)
+# 	return False
 
 
-	s6='''
+class CVGui(object):
+	''' GUI  interface for CV nodes'''
+
+	layout='''
 
 VerticalLayout:
 	setWindowTitle: '{0}'
@@ -139,7 +126,7 @@ VerticalLayout:
 		self.obj.Proxy.markers=[]
 		self.plot()
 
-	def  plot(self):
+	def plot(self):
 		say("Plot ...")
 		obj=self.obj
 		say(obj)
@@ -170,6 +157,7 @@ VerticalLayout:
 				if x0 < x1: x0,x1 = x1,x0
 				if y0 < y1: y0,y1 = y1,y0
 				crop_img = img[y1:y0, x1:x0]
+				cv2.imshow("crop image",crop_img)
 #				say(img.shape)
 #				say(crop_img.shape)
 				
@@ -182,7 +170,6 @@ VerticalLayout:
 				except:
 					sayexc()
 				# img=crop_img
-#				say("huhu")
 		except:
 			obj.Proxy.markers=[]
 		# mouse callback function
@@ -198,6 +185,17 @@ VerticalLayout:
 					say("Markers ...")
 					obj.Proxy.markers=obj.Proxy.markers[-2:]
 					say(obj.Proxy.markers)
+
+					if len(obj.Proxy.markers)>=2:
+						say(obj.Proxy.markers)
+						[x0,y0]=obj.Proxy.markers[0]
+						[x1,y1]=obj.Proxy.markers[1]
+						if x0 < x1: x0,x1 = x1,x0
+						if y0 < y1: y0,y1 = y1,y0
+						crop_img = img[y1:y0, x1:x0]
+						cv2.imshow("crop image",crop_img)
+
+					#--------
 					obj.touch()
 
 			cv2.namedWindow('image')
@@ -207,69 +205,49 @@ VerticalLayout:
 
 		obj.Proxy.img=img
 		obj.touch()
-		#-------------------------------------------
-		
-		## cv2.imshow("!!" + obj.Label,img)
-		
-		
-		obj.Proxy.display=True
-#		print "gezeigt"
 
-	def plot2(self):
-		
-		# no image for PathAnalyzer
-		say("plot2 ----------------")
-		say(self.obj.mode)
-		
-		#if self.obj.mode=='PathAnalyzer':
-		#	return
-		
+		obj.Proxy.display=True
+
+	def plot2(self,h=None,w=None):
+
+
+		say("plot2  for -------" + self.obj.mode)
+
+		# add/reset the mathplotlibwidget 
 		try:
 			self.mpl
 		except:
-#			say("add mplw ..............------------------------------------------------------------")
 			self.add_mplw("mplw")
-
-		self.mpl.figure.clf()
-		self.mpl.canvas = FigureCanvas(self.mpl.figure)
-		FigureCanvas.updateGeometry(self.mpl)
-#		self.mpl.draw()
-#		from matplotlib import pyplot as plt
+		
+		
+		
+		
+		
 		plt=self.mpl.figure
-		FreeCAD.plt=plt
+		plt.clf()
+		
+		
+		#FreeCAD.plt=plt
 		obj=self.obj
 
 		try:
 			if obj.mode == 'ImageFile':
 #				say("Image from File ..." + str(obj.sourceFile))
 				try:
-#					say("try")
-					
-#					say("got ...")
 					img2 = cv2.imread(obj.sourceFile)
-					
-					
-#					say(img2.shape)
 					img=obj.Proxy.img
-#					say (img.shape)
 				except:
 					sayexc("error reading source because ...")
 					say(obj)
 					say(obj.Proxy)
-					
 					img = cv2.imread(obj.sourceFile)
-				
-				
-				
-				
-				
 			else:
 #				say("Image from Object ..." + str(obj.sourceObject.Label))
 				try: img=obj.Proxy.img
 				except: img=None
-				# img=obj.sourceObject.Proxy.img
 		except:
 			sayexc()
+
 
 		if img == None:
 			img=cv2.imread(__dir__+'/icons/freek.png')
@@ -277,18 +255,10 @@ VerticalLayout:
 
 		im_w = img.shape[0]
 		im_h = img.shape[1]
-#		say("koordianten vor resize x=w,y=h")
-#		say([plt.bbox.xmax,plt.bbox.ymax,plt.bbox.xmin,plt.bbox.ymin])
-#		say([im_w,im_h])
-		# res = cv2.resize(img,(int(plt.bbox.xmax)+40,int(plt.bbox.ymax)+40), interpolation = cv2.INTER_CUBIC)
-
-
 
 		ks=3
 		kernel = np.ones((ks,ks),np.uint8)
 		dilation = cv2.dilate(img,kernel,iterations = 1)
-		#img=dilation
-
 
 		if 0: # das geth schon ...
 			import matplotlib.pyplot as plt2
@@ -300,11 +270,17 @@ VerticalLayout:
 		try:
 			# fuer skelette umfaerben
 			img=obj.Proxy.dist_on_skel
-			say("skel okay")
+			say("skeleton image loaded")
 		except:
 			pass
 		
+#		if h <> None:
+#			res=resize(img,int(w+100),int(h+100))
+#			print "resized"
+#		else:
+
 		res=resize(img,int(plt.bbox.ymax-plt.bbox.ymin),int(plt.bbox.xmax-plt.bbox.xmin))
+		
 		# plt.figimage(res, 0, 0, alpha=.75, zorder=2)
 		
 		import matplotlib.pyplot as plt2
@@ -315,24 +291,22 @@ VerticalLayout:
 			res = cv2.merge([r,g,b])
 		except:
 			pass
-		say("huhu")
-		### plt.figimage(res, 0, 0, alpha=.75, zorder=2)
+		##plt.figimage(res, 0, 0, alpha=.75, zorder=2)
 		
 		### -- fuer skelette 
-		plt.figimage(res,  cmap=plt2.cm.spectral)
-		#
-
-		sayErr("okay 2a")
-		#
+		
+		plt.figimage(res, 0,0,  cmap=plt2.cm.spectral, )
+		 
+		# plt.figimage(res, xo=1,yo=0, cmap=plt2.cm.spectral, origin="lower")
 		self.mpl.draw()
+
 
 	def showcolormap(self):
 		import matplotlib.pyplot as plt
 		obj=self.obj
-		# m=FreeCAD.dos
 		m=obj.Proxy.dist_on_skel
-		plt.imshow(m, cmap=plt.cm.spectral, interpolation='nearest')
-		# plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
+		#plt.imshow(m, cmap=plt.cm.spectral, interpolation='nearest')
+		plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
 		plt.show()
 
 
@@ -343,10 +317,16 @@ VerticalLayout:
 	#
 
 	def add_mplw(self,idname):
-		self.mpl=MatplotlibWidget()
+		##self.mpl=MatplotlibWidget()
+		
+		self.mpl=reconstruction.mpl.MatplotlibWidget()
 		self.root.ids[idname]=self.mpl
 		try: self.root.ids['vela'].layout.addWidget(self.mpl)
 		except: pass
+
+		k=self.mpl.resizeEvent
+		self.mpl.resizeEvent = lambda e:onResize(self,e,k)
+
 
 
 	def add_button(self,idname,label,method):
@@ -428,10 +408,10 @@ VerticalLayout:
 		dial=self.add_dialer2(idname,label,method)
 		dial.valueChanged.connect(updater)
 
+
 	def add_dialernr(self,idname,label,method):
 		dial=self.add_dialer2(idname,label,method,norun=True)
 		dial.valueChanged.connect(updater)
-
 
 
 	def add_slider(self,idname,label,method):
@@ -586,6 +566,7 @@ VerticalLayout:
 			self.add_button("showimagex","Reset Zoom",self.resetZoom)
 
 		self.add_button("resetdata","close",self.close)
+
 		# example access to a widget
 		#self.root.ids['resetdata'].hide()
 
@@ -598,20 +579,17 @@ VerticalLayout:
 		self.plot2()
 
 def run_pathfinder (obj,app):
-	say(" find pathes ...")
+	''' find pathes(connected pointsets) in an image'''
+
 	import reconstruction.pathfinder
 	reload(reconstruction.pathfinder)
 
 	# load a image and calculate the pathlist pl2
 	pf=reconstruction.pathfinder.PathFinder()
-	
-	# pf.fn='/home/thomas/Bilder/bp_003.png'
-	
 	pf.fn=obj.sourceObject.sourceFile
+
 	try: pf.img=obj.sourceObject.Proxy.img
 	except: pass
-	
-	# pf.showPics=False
 	
 	pl2=pf.run(obj.minPathPoints,obj.showPics,obj)
 	obj.Proxy.pl2=pl2
@@ -621,62 +599,38 @@ def run_pathfinder (obj,app):
 
 
 def run_pathanalyzer(obj,app=None,forcereload=True,createFC=False):
+	''' split path into intervals '''
+	
 	import reconstruction.pathanalyser
 	if forcereload: reload(reconstruction.pathanalyser)
 	
 	if app <> None:
 		FreeCAD.app=app
-	##	app.root.ids['vela'].hide()
-	
-#	say("runnign parameters ...")
-#	say(obj.N)
-#	say(obj.Threshold)
-	
-	# if not forcereload: return
 
 	try: obj.Proxy.pl2
 	except:
 		sayexc("no data - run FindPathes first")
 		errorDialog("no data - run FindPathes first")
 		return
-	
+
 	try: widget=obj.Proxy.analyzer
 	except: widget=None
-	
+
 	hideApprox=obj.hideApproximation
 
-	if obj.pathSelection:
+	if obj.pathSelection: # process selected path
 		analyzer=reconstruction.pathanalyser.runsel(obj.N,obj.Threshold,widget,createFC,obj)
-	elif obj.pathId==-1:
+	elif obj.pathId==-1: # process pathObject
 		analyzer=reconstruction.pathanalyser.runobj(obj.pathObject,obj.N,obj.Threshold,widget,createFC,obj)
-	else:
+	else: # process object by index number
 		analyzer=reconstruction.pathanalyser.run(obj.Proxy.pl2,obj.pathId,obj.N,obj.Threshold,widget,createFC,obj)
 
-	# say(["analyzer:",analyzer])
 	obj.Proxy.analyzer=analyzer
-
-
 	return
-
-'''
-	try:
-		say(obj.Proxy.analyzer)
-		say("analyser to recompute ...")
-		say("momentan nur der finder eingebunden -- to do ")
-	except:
-		say("start analyzer")
-		analyzer=reconstruction.pathanalyser.run()
-		say(["analyzer:",analyzer])
-		obj.Proxy.analyzer=analyzer
-		# for debugging
-		FreeCAD.analyzer=analyzer
-	say("done")
-
-'''
-
 
 
 def run_pathes(obj,app):
+
 	try:
 		pathes=obj.sourceObject.Proxy.pathes
 	except:
@@ -726,6 +680,8 @@ def run_pathes(obj,app):
 
 
 def changeMode(obj,mode):
+	''' create, hide/unhide the properties for mode'''
+
 	try:
 		if mode == 'ImageFile':
 			obj.setEditorMode("sourceFile", 0)
@@ -733,8 +689,7 @@ def changeMode(obj,mode):
 		else:
 			obj.setEditorMode("sourceFile", 2)
 			obj.setEditorMode("sourceObject", 0)
-	except:
-		pass
+	except: pass
 
 	try: t = config.configMode[obj.mode]
 	except: 
@@ -744,10 +699,8 @@ def changeMode(obj,mode):
 	props=config.configMode[obj.mode]['props']
 	for p in props:
 		pid,ptyp,pgroup,pval=p
-		try: obj.getPropertyByName(pid)
+		try: temp=obj.getPropertyByName(pid)
 		except:
-			say("add property, defaults: ...")
-			say(p)
 			obj.addProperty(ptyp,pid,pgroup)
 			setattr(obj,pid,pval)
 
@@ -1017,33 +970,31 @@ def execute_Morphing(proxy,obj):
 #
 
 def linelengths(self):
-		lines=self.lines
-		ds=[]
-		for ll in lines:
-			[l]=ll
-			d=np.sqrt((l[0]-l[2])**2+(l[1]-l[3])**2)
-			ds.append(d)
-		ds=np.array(ds)
-		return ds
+	''' helper function for hough lines '''
+	lines=self.lines
+	ds=[]
+	for ll in lines:
+		[l]=ll
+		d=np.sqrt((l[0]-l[2])**2+(l[1]-l[3])**2)
+		ds.append(d)
+	ds=np.array(ds)
+	return ds
 
 def directions(self):
-		lines=self.lines
-
-		ds=[]
-		for ll in lines:
-			[l]=ll
-			d=np.arctan2((l[0]-l[2]),(l[1]-l[3]))*180.0/np.pi
-			if d<0:
-				d += 180
-			# d = -d
-			ds.append(d)
-
-		ds=np.array(ds)
-		return ds
-
-
+	''' helper function for hough lines '''
+	ds=[]
+	for ll in self.lines:
+		[l]=ll
+		d=np.arctan2((l[0]-l[2]),(l[1]-l[3]))*180.0/np.pi
+		if d<0: d += 180
+		ds.append(d)
+	ds=np.array(ds)
+	return ds
 
 def execute_HoughLines(proxy,obj):
+	''' find houghlines '''
+	
+	# parameter from obj
 	canny1=obj.canny1
 	canny2=obj.canny2
 	rho=obj.rho
@@ -1052,9 +1003,12 @@ def execute_HoughLines(proxy,obj):
 	minLineLength =obj.minLineLength
 	maxLineGap =obj.maxLineGap
 
+	# load the image
 	try: img=obj.sourceObject.Proxy.img.copy()
 	except: img=cv2.imread(__dir__+'/icons/freek.png')
 
+	# find edges
+	# naechst zwei zeilen koennen wahrscheinlich weg. #+#
 	edges = cv2.Canny(img,canny1,canny2)
 	obj.Proxy.img = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
 
@@ -1063,12 +1017,11 @@ def execute_HoughLines(proxy,obj):
 	xsize=img.shape[1]
 	ysize=img.shape[0]
 
+	# find lines
 	lines = cv2.HoughLinesP(edges,1,np.pi/180*theta,threshold, minLineLength = minLineLength, maxLineGap = maxLineGap)
 
 	k=0
 	fclines=[]
-	#say("huhu")
-
 	img = 0 *img
 
 	for l in lines:
@@ -1078,10 +1031,9 @@ def execute_HoughLines(proxy,obj):
 		fclines.append(fl)       
 		print (x1,y1,x2,y2)
 		a=cv2.line(img,(x1,y1),(x2,y2),(0,255,0),1)
-	#say("hlines computed")
-	
+
+	# data for following nodes
 	obj.Proxy.img=img
-	
 	obj.Proxy.fclines=fclines
 	obj.Proxy.lines=lines
 
@@ -1090,83 +1042,8 @@ def execute_HoughLines(proxy,obj):
 	obj.Proxy.__class__.directions=property(lambda self: directions(self))
 
 
-
-'''
-# App.ActiveDocument.My_HoughLines.Proxy.linelengths_ZZZZ
-
-
-#
-#  computed properties
-#
-
-class HoughLinesExtras(object):
-	
-	def __init__(self,proxy):
-			self.proxy=proxy
-
-	@property
-	def linelengths(self):
-		lines=self.proxy.lines
-
-		ds=[]
-		for ll in lines:
-			[l]=ll
-			d=np.sqrt((l[0]-l[2])**2+(l[1]-l[3])**2)
-			ds.append(d)
-
-		ds=np.array(ds)
-		return ds
-
-	@property
-	def directions(self):
-		lines=self.proxy.lines
-
-		ds=[]
-		for ll in lines:
-			[l]=ll
-			d=np.arctan2((l[0]-l[2]),(l[1]-l[3]))*180.0/np.pi
-			if d<0:
-				d += 180
-			# d = -d
-			ds.append(d)
-
-		ds=np.array(ds)
-		return ds
-'''
-
-#--------------------------------------------------------------------------------
-
-global countHLP
-countHLP=0
-
 def execute_HoughLinesPost(proxy,obj):
 	sayErr("execute_HoughLinesPost - does nothing - update by hand required")
-	
-	return
-
-	global countHLP
-	global lasttime
-
-	if countHLP>0:
-		say("countre too high - cancel")
-		return
-
-	countHLP += 1
-	try:
-		tools.run_HoughLinesPost(obj,None)
-		sayW("post donwe")
-
-	except:
-		sayexc()
-	say(("t-lasttime",t-lasttime))
-	lasttime=t
-	countHLP -= 1
-
-
-
-#--------------------------------------------------------------------------------
-
-
 
 
 def execute_ImageFile(proxy,obj):
@@ -1204,6 +1081,18 @@ def execute_ImageFile(proxy,obj):
 	if obj.Proxy.img == None:
 		sayErr(__dir__+'/icons/freek.png')
 		obj.Proxy.img=cv2.imread(__dir__+'/icons/freek.png')
+
+	# subimage selection
+	if obj.subX1>0 or obj.subY1>0:
+		say("size cut ...")
+		say(img.shape)
+		if obj.subY1 == 0: yy=img.shape[0]
+		else: yy=obj.subY1
+		if obj.subX1 == 0: xx=img.shape[1]
+		else: xx=obj.subX1
+		
+		obj.Proxy.img=obj.Proxy.img[obj.subY0:obj.subY0+yy,obj.subX0:obj.subX0+xx]
+
 
 def execute_HSV(proxy,obj):
 	say("hsv ..")
@@ -1340,18 +1229,15 @@ def execute_SkeletonV0(proxy,obj):
 	obj.Proxy.img=skel
 	obj.Proxy.img=bgr
 
-import numpy as np
-from scipy import ndimage as ndi
-from skimage.morphology import medial_axis
-import matplotlib.pyplot as plt
 
 
 
 
 def execute_Skeleton(proxy,obj):
-	say("skeleton ..")
+
+	from skimage.morphology import medial_axis
+
 	threshold=0.1*obj.threshold
-	otsu=obj.otsu
 
 	try: 
 		img2=obj.sourceObject.Proxy.img
@@ -1360,12 +1246,7 @@ def execute_Skeleton(proxy,obj):
 		sayexc()
 		img=cv2.imread(__dir__+'/icons/freek.png')
 
-	# img3 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-
-#---------------
 	data = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	# data = 255 - data
 
 	# Compute the medial axis (skeleton) and the distance transform
 	skel, distance = medial_axis(data, return_distance=True)
@@ -1374,35 +1255,23 @@ def execute_Skeleton(proxy,obj):
 	dist_on_skel = distance * skel
 
 	# entferne ganz duenne linien
-	# threshold=0
 	dist_on_skelw =(dist_on_skel >= threshold)* distance
-#	say(np.max(dist_on_skelw))
-#	say(np.min(dist_on_skelw))
-#	
 
-#	plt.imshow(dist_on_skelw, cmap=plt.cm.spectral, interpolation='nearest')
-	# plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
-#	plt.show()
-	say("y2")
+	say("size of the image ...")
 	say(dist_on_skelw.shape)
-	skel = np.array(dist_on_skelw,np.uint8) 
-	FreeCAD.dos=dist_on_skelw
+#	skel = np.array(dist_on_skelw,np.uint8) 
 	skel = np.array(dist_on_skelw *255/np.max(dist_on_skelw),np.uint8) 
 	obj.Proxy.img=cv2.cvtColor(skel*100, cv2.COLOR_GRAY2BGR)
 	obj.Proxy.dist_on_skel=dist_on_skelw
 
+
 def execute_FatColor(proxy,obj):
-	
-	
+
+
 	import cv2
 	import matplotlib.pyplot as plt
-	import numpy as np
-
-
-	import numpy as np
 	from scipy import ndimage as ndi
 	from skimage.morphology import medial_axis
-	import matplotlib.pyplot as plt
 
 	try: 
 		img2=obj.sourceObject.Proxy.img
@@ -1525,30 +1394,18 @@ class _CV(Animation._Actor):
 		if prop == 'mode': changeMode(obj,obj.mode)
 
 	@property
+	# testcase for dynamic property, to call use 
+	# App.ActiveDocument.My_ImageFile.Proxy.myprop
+	# http://stackoverflow.com/questions/1325673/how-to-add-property-to-a-python-class-dynamically
 	def myprop(self):
-		say("myprop said")
-		return "MYPROP"
+		say("myprop called")
+		return "Return of MYPROP"
 
-'''
-# http://stackoverflow.com/questions/1325673/how-to-add-property-to-a-python-class-dynamically
-
->>> class Foo(object):
-...     pass
-
->>> foo = Foo()
->>> foo.a = 3
->>> Foo.b = property(lambda self: self.a + 1)
->>> foo.b
-
->>> App.ActiveDocument.My_ImageFile.Proxy.__class__.yy=property(lambda self:  + 1)
->>> App.ActiveDocument.My_ImageFile.Proxy.yy
-1
-'''
 
 
 
 class _ViewProviderCV(Animation._ViewProviderActor):
-
+	''' the gui for a CV node '''
 
 	def __init__(self,vobj):
 		self.attach(vobj)
@@ -1561,36 +1418,41 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 		self.vers=__vers__
 		self.hidden=True
 		try: self.createDialog()
-		except: sayexc("tryed to create dialog")
+		except: sayexc()
 		self.hidden=True
 
 
 	def getIcon(self):
 		return  __dir__+ '/icons/'+self.Object.mode+'.svg'
 
-	def createDialog(self):
+
+	def createDialog(self): 
+
 		if self.hidden: self.hidden=False
 		else: return
 
-		app=MyApp()
+		app=CVGui()
 		miki2=miki.Miki()
 		miki2.app=app
 		app.root=miki2
 		app.obj=self.Object
 		self.Object.Proxy.app=app
-		self.edit= lambda:miki2.run(MyApp.s6.format(
+
+		self.edit= lambda:miki2.run(CVGui.layout.format(
 				self.Object.Label+": "+self.Object.mode,
 				self.Object.Label+": "+self.Object.mode
-				),app.modDialog)
+				),
+			app.modDialog
+		)
 
 
 	def setupContextMenu(self, obj, menu):
+		''' create the context menu''' 
+
 		self.createDialog()
 
-		# say(config.configMode)
 		try: t=config.configMode[self.Object.mode]
-		except: sayexc("setupContextMenu no mode " + self.Object.mode)
-
+		except: sayexc("setupContextMenu no value for property mode " + self.Object.mode)
 
 
 		cl=self.Object.Proxy.__class__.__name__
@@ -1612,6 +1474,7 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 
 	edit=None
 
+
 	def setEdit(self,vobj,mode=0):
 		if self.hidden:
 			self.createDialog()
@@ -1621,21 +1484,26 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 		return True
 
 
-def createCV(mode='ImageFile',label=None):
 
+
+def createCV(mode='ImageFile',label=None):
+	''' create a new CV node '''
 
 	if label == None: label = "My " + mode
+
 	obj=FreeCAD.ActiveDocument.addObject('App::DocumentObjectGroupPython',label)
 	obj.addProperty('App::PropertyLink','sourceObject',"Base")
 	obj.addProperty('App::PropertyFile','sourceFile',"Base")
 	obj.addProperty('App::PropertyEnumeration','mode',"Base").mode=modes
 	obj.addProperty('App::PropertyBool','invert',"Base").invert=False
+	
+	obj.addProperty('App::PropertyInteger','subX0',"Base").subX0=0
+	obj.addProperty('App::PropertyInteger','subX1',"Base").subX1=0
+	obj.addProperty('App::PropertyInteger','subY0',"Base").subY0=0
+	obj.addProperty('App::PropertyInteger','subY1',"Base").subY1=0
+	
 	obj.mode=mode
-	sayErr("Change Mode ")
 	changeMode(obj,obj.mode)
 	_CV(obj)
 
 	return obj
-
-
-
