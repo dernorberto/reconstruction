@@ -2,8 +2,19 @@
 # implemented modes
 #
 
-modes=['BlobDetector','ImageFile','Color','CannyEdge','GoodFeaturesToTrack','HSV','HoughLines',
-	'HoughLinesPost','Invert','Mixer','Morphing','Pathes','Skeleton','Threshold']
+modes=[
+	'BlobDetector',
+	'ImageFile',
+	'Color','ColorSpace','CannyEdge',
+	'FatColor',
+	'GoodFeaturesToTrack',
+	'HSV','HoughLines','HoughLinesPost',
+	'Invert',
+	'Mixer','Morphing',
+	'Pathes',
+	'PathAnalyzer',
+	'Skeleton',
+	'Threshold']
 
 
 configMode= {}
@@ -474,6 +485,50 @@ configMode['Pathes'] = {
 
 
 
+configMode['PathAnalyzer'] = {
+
+	'props' : [
+		['pathId','App::PropertyInteger','PathAnalyzer',1],
+		['pathObject','App::PropertyLink','PathAnalyzer',None],
+		['pathSelection','App::PropertyBool','PathAnalyzer',False],
+		['N','App::PropertyInteger','PathAnalyzer',10],
+		['minPathPoints','App::PropertyInteger','PathAnalyzer',20],
+		['Threshold','App::PropertyInteger','PathAnalyzer',20],
+#		['ThresholdFactor','App::PropertyInteger','PathAnalyzer',10],
+		['createWire','App::PropertyBool','PathAnalyzer',False],
+		['hideApproximation','App::PropertyBool','PathAnalyzer',False],
+		['hideLegend','App::PropertyBool','PathAnalyzer',True],
+		['showPics','App::PropertyBool','PathAnalyzer',False],
+		['maxRadius','App::PropertyFloat','PathAnalyzer',200],
+
+	],
+
+	'widgets' : [ 
+		{
+			'id':'N', 
+			'params' : ['dialer',3,30],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+		{
+			'id':'Threshold', 
+			'params' : ['dialer',1,200],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+		{
+			'id':'createWire', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+	]
+
+}
+
+
 configMode['Threshold'] = {
 
 
@@ -531,6 +586,206 @@ configMode['Threshold'] = {
 	]
 
 }
+
+
+configMode['ColorSpace'] = {
+
+
+	'props' : [
+		['globalThresholding','App::PropertyBool','CannyEdge',False],
+		['adaptiveMeanTresholding','App::PropertyBool','CannyEdge',False],
+		['adaptiveGaussianThresholding','App::PropertyBool','CannyEdge',False],
+		['h1','App::PropertyInteger','CannyEdge',100],
+		['h2','App::PropertyInteger','CannyEdge',150],
+		['s1','App::PropertyInteger','CannyEdge',100],
+		['s2','App::PropertyInteger','CannyEdge',150],
+		['v1','App::PropertyInteger','CannyEdge',100],
+		['v2','App::PropertyInteger','CannyEdge',255],
+
+
+	],
+
+
+	'widgets' : [ 
+
+		{
+			'id':'globalThresholding', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'adaptiveMeanTresholding', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'adaptiveGaussianThresholding', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'h1', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'h2', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'s1', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'s2', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+
+		{
+			'id':'v1', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'v2', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+
+
+	]
+
+}
+
+
+configMode['FatColor'] = {
+
+
+	'props' : [
+		['globalThresholding','App::PropertyBool','CannyEdge',False],
+		['adaptiveMeanTresholding','App::PropertyBool','CannyEdge',False],
+		['adaptiveGaussianThresholding','App::PropertyBool','CannyEdge',False],
+		['h1','App::PropertyInteger','CannyEdge',100],
+		['h2','App::PropertyInteger','CannyEdge',150],
+		['s1','App::PropertyInteger','CannyEdge',100],
+		['s2','App::PropertyInteger','CannyEdge',150],
+		['v1','App::PropertyInteger','CannyEdge',100],
+		['v2','App::PropertyInteger','CannyEdge',255],
+
+
+	],
+
+
+	'widgets' : [ 
+
+		{
+			'id':'globalThresholding', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'adaptiveMeanTresholding', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'adaptiveGaussianThresholding', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'h1', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'h2', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'s1', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'s2', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+
+		{
+			'id':'v1', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'v2', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+
+
+	]
+
+}
+
+
+
+
+
+
 
 
 

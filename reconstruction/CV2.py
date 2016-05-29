@@ -82,6 +82,7 @@ class MatplotlibWidget(FigureCanvas):
 		FigureCanvas.setSizePolicy(self,
 				QtGui.QSizePolicy.Expanding,
 				QtGui.QSizePolicy.Expanding)
+
 		FigureCanvas.updateGeometry(self)
 
 		self.axes = self.figure.add_subplot(111)
@@ -215,6 +216,14 @@ VerticalLayout:
 #		print "gezeigt"
 
 	def plot2(self):
+		
+		# no image for PathAnalyzer
+		say("plot2 ----------------")
+		say(self.obj.mode)
+		
+		#if self.obj.mode=='PathAnalyzer':
+		#	return
+		
 		try:
 			self.mpl
 		except:
@@ -272,9 +281,62 @@ VerticalLayout:
 #		say([plt.bbox.xmax,plt.bbox.ymax,plt.bbox.xmin,plt.bbox.ymin])
 #		say([im_w,im_h])
 		# res = cv2.resize(img,(int(plt.bbox.xmax)+40,int(plt.bbox.ymax)+40), interpolation = cv2.INTER_CUBIC)
+
+
+
+		ks=3
+		kernel = np.ones((ks,ks),np.uint8)
+		dilation = cv2.dilate(img,kernel,iterations = 1)
+		#img=dilation
+
+
+		if 0: # das geth schon ...
+			import matplotlib.pyplot as plt2
+			obj.Proxy.dist_on_skel
+			plt2.imshow(obj.Proxy.dist_on_skel, cmap=plt2.cm.spectral, interpolation='nearest')
+			# plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
+			plt2.show()
+			say("okay 3")
+		try:
+			# fuer skelette umfaerben
+			img=obj.Proxy.dist_on_skel
+			say("skel okay")
+		except:
+			pass
+		
 		res=resize(img,int(plt.bbox.ymax-plt.bbox.ymin),int(plt.bbox.xmax-plt.bbox.xmin))
-		plt.figimage(res, 0, 0, alpha=.75, zorder=2)
+		# plt.figimage(res, 0, 0, alpha=.75, zorder=2)
+		
+		import matplotlib.pyplot as plt2
+		
+		#res=cv2.cvtColor(res,cv2.COLOR_BGR2RGB)
+		try:
+			b,g,r = cv2.split(res)       # get b,g,r
+			res = cv2.merge([r,g,b])
+		except:
+			pass
+		say("huhu")
+		### plt.figimage(res, 0, 0, alpha=.75, zorder=2)
+		
+		### -- fuer skelette 
+		plt.figimage(res,  cmap=plt2.cm.spectral)
+		#
+
+		sayErr("okay 2a")
+		#
 		self.mpl.draw()
+
+	def showcolormap(self):
+		import matplotlib.pyplot as plt
+		obj=self.obj
+		# m=FreeCAD.dos
+		m=obj.Proxy.dist_on_skel
+		plt.imshow(m, cmap=plt.cm.spectral, interpolation='nearest')
+		# plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
+		plt.show()
+
+
+
 
 	#
 	# add special widgets
@@ -316,7 +378,7 @@ VerticalLayout:
 		dial = QtGui.QDial()
 		dial.setNotchesVisible(True)
 		self.dial=dial
-		dial.setMaximum(200)
+		dial.setMaximum(255)
 		m2= lambda: method(dial.value())
 		dial.valueChanged.connect(m2)
 		# dial.valueChanged.connect(updater)
@@ -382,7 +444,7 @@ VerticalLayout:
 		dial.setTickPosition(QtGui.QSlider.TicksBothSides)
 
 		self.dial=dial
-		dial.setMaximum(200)
+		dial.setMaximum(255)
 		m2= lambda: method(dial.value())
 		dial.valueChanged.connect(m2)
 		self.root.ids[idname]=dial
@@ -458,7 +520,11 @@ VerticalLayout:
 				# say ([w,val,wic])
 				if wic == 'lineEdit': wid.setText(val)
 				if wic == 'slider': wid.setValue(val)
-				if wic == 'dialer': wid.setValue(val)
+				if wic == 'dialer': 
+					wid.setValue(val)
+					if len(w['params'])>=3:
+						wid.setMinimum(w['params'][1])
+						wid.setMaximum(w['params'][2])
 				if wic == 'dialer2': wid.setValue(val)
 				if wic == 'dialernr': wid.setValue(val)
 				if wic == 'checkBox': 
@@ -504,9 +570,15 @@ VerticalLayout:
 #			self.root.ids['vela'].hide()
 		elif self.obj.mode ==  'Pathes' :
 			self.add_button("resetdata","Pathes generater",lambda:run_pathes(self.obj,self))
+		elif self.obj.mode ==  'PathAnalyzer' :
+			self.add_button("resetdata","Detect Pathes in the Image",lambda:run_pathfinder(self.obj,self))
+			self.add_button("resetdata","Analyse Path (and create exact Wire)",lambda:run_pathanalyzer(self.obj,self,True,self.obj.createWire))
+			self.add_button("updateimage","Update Image",self.plot2)
 		else:
 			self.add_button("updateimage","Update Image",self.plot2)
 			self.add_button("showimage","Show Image in separate Window",self.plot)
+			self.add_button("showimage","Show Color Map in separate Window",self.showcolormap)
+
 			self.add_button("resetdata","Recompute Data",lambda:recomputeData(self.obj))
 			self.add_button("resetdata","snapshot",self.snapshot)
 
@@ -524,6 +596,84 @@ VerticalLayout:
 
 		# post command
 		self.plot2()
+
+def run_pathfinder (obj,app):
+	say(" find pathes ...")
+	import reconstruction.pathfinder
+	reload(reconstruction.pathfinder)
+
+	# load a image and calculate the pathlist pl2
+	pf=reconstruction.pathfinder.PathFinder()
+	
+	# pf.fn='/home/thomas/Bilder/bp_003.png'
+	
+	pf.fn=obj.sourceObject.sourceFile
+	try: pf.img=obj.sourceObject.Proxy.img
+	except: pass
+	
+	# pf.showPics=False
+	
+	pl2=pf.run(obj.minPathPoints,obj.showPics)
+	obj.Proxy.pl2=pl2
+	obj.Proxy.img=pf.imgOut
+
+	say("done/found")
+
+
+def run_pathanalyzer(obj,app=None,forcereload=True,createFC=False):
+	import reconstruction.pathanalyser
+	if forcereload: reload(reconstruction.pathanalyser)
+	
+	if app <> None:
+		FreeCAD.app=app
+	##	app.root.ids['vela'].hide()
+	
+#	say("runnign parameters ...")
+#	say(obj.N)
+#	say(obj.Threshold)
+	
+	# if not forcereload: return
+
+	try: obj.Proxy.pl2
+	except:
+		sayexc("no data - run FindPathes first")
+		errorDialog("no data - run FindPathes first")
+		return
+	
+	try: widget=obj.Proxy.analyzer
+	except: widget=None
+	
+	hideApprox=obj.hideApproximation
+
+	if obj.pathSelection:
+		analyzer=reconstruction.pathanalyser.runsel(obj.N,obj.Threshold,widget,createFC,obj)
+	elif obj.pathId==-1:
+		analyzer=reconstruction.pathanalyser.runobj(obj.pathObject,obj.N,obj.Threshold,widget,createFC,obj)
+	else:
+		analyzer=reconstruction.pathanalyser.run(obj.Proxy.pl2,obj.pathId,obj.N,obj.Threshold,widget,createFC,obj)
+
+	# say(["analyzer:",analyzer])
+	obj.Proxy.analyzer=analyzer
+
+
+	return
+
+'''
+	try:
+		say(obj.Proxy.analyzer)
+		say("analyser to recompute ...")
+		say("momentan nur der finder eingebunden -- to do ")
+	except:
+		say("start analyzer")
+		analyzer=reconstruction.pathanalyser.run()
+		say(["analyzer:",analyzer])
+		obj.Proxy.analyzer=analyzer
+		# for debugging
+		FreeCAD.analyzer=analyzer
+	say("done")
+
+'''
+
 
 
 def run_pathes(obj,app):
@@ -632,7 +782,7 @@ def execute_BlobDetector(proxy,obj):
 	keypoints = detector.detect(im)
 	# Draw detected blobs as red circles.
 	# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-	if obj.showBlobs:
+	if not obj.showBlobs:
 		im_with_keypoints = cv2.drawKeypoints(im, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 		obj.Proxy.img = im_with_keypoints
 		
@@ -640,9 +790,11 @@ def execute_BlobDetector(proxy,obj):
 			(x,y)=k.pt
 			x=int(round(x))
 			y=int(round(y))
-			cv2.circle(im,(x,y),4,0,5)
+#			cv2.circle(im,(x,y),4,0,5)
 			cv2.circle(im,(x,y),4,255,5)
+			cv2.circle(im,(x,y),4,0,5)
 			im[y,x]=255
+			im[y,x]=0
 		obj.Proxy.img = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
 		
 	else:
@@ -653,6 +805,7 @@ def execute_BlobDetector(proxy,obj):
 			cv2.circle(im2,(x,y),4,(255,0,0),5)
 			cv2.circle(im2,(x,y),4,(0,0,0),5)
 			im2[y,x]=(255,0,0)
+			im2[y,x]=(0,0,0)
 		obj.Proxy.img = im2
 
 
@@ -787,14 +940,33 @@ def execute_Threshold(proxy,obj):
 		obj.Proxy.img = cv2.cvtColor(th1, cv2.COLOR_GRAY2RGB)
 
 	if obj.adaptiveMeanTresholding:
-		th2 = cv2.adaptiveThreshold(img,obj.param2,cv2.ADAPTIVE_THRESH_MEAN_C,\
-				cv2.THRESH_BINARY,obj.param1,2)
+		th2 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,\
+				cv2.THRESH_BINARY,11,2)
 		obj.Proxy.img = cv2.cvtColor(th2, cv2.COLOR_GRAY2RGB)
 
 	if obj.adaptiveGaussianThresholding:
-		th3 = cv2.adaptiveThreshold(img,obj.param2,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
-			cv2.THRESH_BINARY,obj.param1,2)
+		th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+			cv2.THRESH_BINARY,17,2)
 		obj.Proxy.img = cv2.cvtColor(th3, cv2.COLOR_GRAY2RGB)
+
+def execute_ColorSpace(proxy,obj):
+
+	try: img=obj.sourceObject.Proxy.img.copy()
+	except: img=cv2.imread(__dir__+'/icons/freek.png')
+	hsv=cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+
+	lower = np.array([max(obj.h1-obj.h2,0),max(obj.s1-obj.s2,0),max(obj.v1-obj.v2,0)])
+	upper = np.array([min(obj.h1+obj.h2,255),min(obj.s1+obj.s2,255),min(obj.v1+obj.v2,255)])
+	say("ee")
+	say(lower)
+	say(upper)
+
+	mask = cv2.inRange(hsv, lower, upper)
+	mask = cv2.inRange(img, lower, upper)
+
+	res = cv2.bitwise_and(img,img, mask= mask)
+
+	obj.Proxy.img=res
 
 
 
@@ -825,6 +997,15 @@ def execute_Morphing(proxy,obj):
 	kernel = np.ones((ks,ks),np.uint8)
 	if obj.filter == 'dilation':
 		dilation = cv2.dilate(img,kernel,iterations = 1)
+		img=dilation
+	if obj.filter == 'erosion':
+		dilation = cv2.erode(img,kernel,iterations = 1)
+		img=dilation
+	if obj.filter == 'opening':
+		dilation = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+		img=dilation
+	if obj.filter == 'closing':
+		dilation = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
 		img=dilation
 
 	obj.Proxy.img = img
@@ -888,13 +1069,15 @@ def execute_HoughLines(proxy,obj):
 	fclines=[]
 	#say("huhu")
 
+	img = 0 *img
+
 	for l in lines:
 		k += 1
 		[[x1,y1,x2,y2]] = l
 		fl=tools.fcline(x1,-y1,x2,-y2)
 		fclines.append(fl)       
 		print (x1,y1,x2,y2)
-		a=cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+		a=cv2.line(img,(x1,y1),(x2,y2),(0,255,0),1)
 	#say("hlines computed")
 	
 	obj.Proxy.img=img
@@ -1073,10 +1256,20 @@ def execute_Pathes(proxy,obj):
 	say("ok")
 
 
+def execute_PathAnalyzer(proxy,obj):
+	say("execute path  analyser")
+	say([obj.N,obj.Threshold])
+	try:
+		say(len(obj.Proxy.pl2))
+		run_pathanalyzer(obj,None,False,False)
+	except:
+		say("still no data to analyze")
+	say("path analyse done")
 
 
 
-def execute_Skeleton(proxy,obj):
+
+def execute_SkeletonV0(proxy,obj):
 	say("skeleton ..")
 	threshold=obj.threshold
 	otsu=obj.otsu
@@ -1146,6 +1339,121 @@ def execute_Skeleton(proxy,obj):
 	
 	obj.Proxy.img=skel
 	obj.Proxy.img=bgr
+
+import numpy as np
+from scipy import ndimage as ndi
+from skimage.morphology import medial_axis
+import matplotlib.pyplot as plt
+
+
+
+
+def execute_Skeleton(proxy,obj):
+	say("skeleton ..")
+	threshold=0.1*obj.threshold
+	otsu=obj.otsu
+
+	try: 
+		img2=obj.sourceObject.Proxy.img
+		img=img2.copy()
+	except: 
+		sayexc()
+		img=cv2.imread(__dir__+'/icons/freek.png')
+
+	# img3 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+
+#---------------
+	data = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	# data = 255 - data
+
+	# Compute the medial axis (skeleton) and the distance transform
+	skel, distance = medial_axis(data, return_distance=True)
+
+	# Distance to the background for pixels of the skeleton
+	dist_on_skel = distance * skel
+
+	# entferne ganz duenne linien
+	# threshold=0
+	dist_on_skelw =(dist_on_skel >= threshold)* distance
+#	say(np.max(dist_on_skelw))
+#	say(np.min(dist_on_skelw))
+#	
+
+#	plt.imshow(dist_on_skelw, cmap=plt.cm.spectral, interpolation='nearest')
+	# plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
+#	plt.show()
+	say("y2")
+	say(dist_on_skelw.shape)
+	skel = np.array(dist_on_skelw,np.uint8) 
+	FreeCAD.dos=dist_on_skelw
+	skel = np.array(dist_on_skelw *255/np.max(dist_on_skelw),np.uint8) 
+	obj.Proxy.img=cv2.cvtColor(skel*100, cv2.COLOR_GRAY2BGR)
+	obj.Proxy.dist_on_skel=dist_on_skelw
+
+def execute_FatColor(proxy,obj):
+	
+	
+	import cv2
+	import matplotlib.pyplot as plt
+	import numpy as np
+
+
+	import numpy as np
+	from scipy import ndimage as ndi
+	from skimage.morphology import medial_axis
+	import matplotlib.pyplot as plt
+
+	try: 
+		img2=obj.sourceObject.Proxy.img
+		img=img2.copy()
+	except: 
+		sayexc()
+		img=cv2.imread(__dir__+'/icons/freek.png')
+
+# 	img=App.ActiveDocument.My_ColorSpace.Proxy.img
+
+	# r,g,b=cv2.split(img)
+
+
+	#mask = cv2.inRange(hsv, lower, upper)
+
+	lower = np.array([255,255,255])
+	# lower = np.array([200,200,200])
+	upper = np.array([255,255,255])
+
+
+	mask = cv2.inRange(img, lower, upper)
+	res = cv2.bitwise_and(img,img, mask= mask)
+
+	ks=3
+	kernel = np.ones((ks,ks),np.uint8)
+
+	kernelPLUS=np.array([[0, 1, 0],
+		   [1, 1, 1],
+		   [0, 1, 0]], dtype=np.uint8)
+
+	kernelCROSS=np.array([[1, 0,1],
+		   [0, 1, 0],
+		   [1, 0, 1]], dtype=np.uint8)
+
+
+
+	dilation = cv2.dilate(res,kernel,iterations = 1)
+	erode1 = cv2.erode(res,kernelPLUS,iterations = 1)
+	erode2 = cv2.erode(res,kernelCROSS,iterations = 1)
+	erode = cv2.erode(res,kernel,iterations = 1)
+	res=dilation
+	res=erode1 + erode2 
+	# res=erode
+	dilation = cv2.dilate(res,kernel,iterations = 1)
+	res=dilation
+
+#	plt.imshow(res, cmap=plt.cm.PRGn, interpolation='nearest')
+#	plt.show()
+
+	obj.Proxy.img=res
+
 
 
 #---------------------------------
@@ -1297,6 +1605,9 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 
 		action = menu.addAction("Update Image ...")
 		action.triggered.connect(self.Object.Proxy.app.plot2)
+
+		action = menu.addAction("Show colormap ...")
+		action.triggered.connect(self.Object.Proxy.app.showcolormap)
 
 
 	edit=None
