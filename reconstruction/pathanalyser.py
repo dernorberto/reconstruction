@@ -93,10 +93,12 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 		hideApprox=obj.hideApproximation
 		hideLegend=obj.hideLegend
 		maxRadius=obj.maxRadius
+		showCircles=obj.showCircles
 	else:
 		hideApprox=False
 		hideLegend=True
 		maxRadius=200
+		showCircles=False
 
 
 #	print ("intervals ",len(intervals),intervals)
@@ -182,20 +184,21 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 
 				else:
 					# circles
-					if l==0:
-						kx=x[0:intervals[1+l]+N//2]
-						ky=y[0:intervals[1+l]+N//2]
-					else:
-						kx=x[intervals[l]-N//2:intervals[1+l]+N//2]
-						ky=y[intervals[l]-N//2:intervals[1+l]+N//2]
+					if showCircles:
+						if l==0:
+							kx=x[0:intervals[1+l]+N//2]
+							ky=y[0:intervals[1+l]+N//2]
+						else:
+							kx=x[intervals[l]-N//2:intervals[1+l]+N//2]
+							ky=y[intervals[l]-N//2:intervals[1+l]+N//2]
 
-					# create FreeCAD arcs #+# still dummy hack -> todo
-					if createFC:
-						pl=[FreeCAD.Vector(kx[i],ky[i],1) for i in range(len(kx))]
-						pol=Part.makePolygon(pl)
-						Part.show(pol)
-						App.ActiveDocument.ActiveObject.ViewObject.LineWidth=7.0
-						App.ActiveDocument.ActiveObject.ViewObject.LineColor=(.0,1.0,1.0)
+						# create FreeCAD arcs #+# still dummy hack -> todo
+						if createFC:
+							pl=[FreeCAD.Vector(kx[i],ky[i],1) for i in range(len(kx))]
+							pol=Part.makePolygon(pl)
+							Part.show(pol)
+							App.ActiveDocument.ActiveObject.ViewObject.LineWidth=7.0
+							App.ActiveDocument.ActiveObject.ViewObject.LineColor=(.0,1.0,1.0)
 
 
 				if 0: # for debugging the scanned data as line

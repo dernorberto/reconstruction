@@ -7,7 +7,7 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-__vers__="29.05.2016  0.1"
+__vers__="30.05.2016  0.2"
 
 import reconstruction.say
 reload(reconstruction.say)
@@ -86,7 +86,7 @@ def resize(img,y,x):
 	return img2
 
 
-def onResize(obj,e,uk):
+def onResize(obj,e,uk,vela):
 	''' event handler for onResize of a matplotlib widget '''
 
 	w=e.size().width()
@@ -94,7 +94,6 @@ def onResize(obj,e,uk):
 	print(w,h)
 	obj.plot2()
 	uk(e)
-# 	return False
 
 
 class CVGui(object):
@@ -112,6 +111,7 @@ VerticalLayout:
 		id:'vela'
 #		setFixedHeight: 500
 #		setFixedWidth: 500
+		resize: PySide.QtCore.QSize(400,300)
 		setWindowTitle: '{1}'
 #		move:  PySide.QtCore.QPoint(3000,100)
 #		QtGui.QLabel:
@@ -136,19 +136,14 @@ VerticalLayout:
 				say(obj.sourceFile)
 				img = cv2.imread(obj.sourceFile)
 			else:
-				say("Object ...")
-				say(obj.sourceObject)
-				say(obj.sourceObject.Label)
-				# say(obj.sourceObject.Proxy.img)
-				img=obj.sourceObject.Proxy.img
+				#img=obj.sourceObject.Proxy.img
 				say("image geladn von sourceObject !!!!!!!!!!!!!!!!!")
 				img=obj.Proxy.img
 		except:
 			sayexc()
 		if img == None:
 			img=cv2.imread(__dir__+'/icons/freek.png')
-#		print "zeige"
-		#------------------------------------------
+
 		try: 
 			if len(obj.Proxy.markers)>=2:
 				say(obj.Proxy.markers)
@@ -158,26 +153,24 @@ VerticalLayout:
 				if y0 < y1: y0,y1 = y1,y0
 				crop_img = img[y1:y0, x1:x0]
 				cv2.imshow("crop image",crop_img)
-#				say(img.shape)
-#				say(crop_img.shape)
 				
 				scaler=img.shape[0]//crop_img.shape[0]
-#				say(scaler)
-#				say([img.shape[1],img.shape[0]])
 				try:
 					#img=cv2.resize(crop_img,(img.shape[1],img.shape[1]*crop_img.shape[0]//crop_img.shape[1]),interpolation = cv2.INTER_CUBIC)
 					img=resize(crop_img,400,800)
 				except:
 					sayexc()
-				# img=crop_img
 		except:
 			obj.Proxy.markers=[]
+
 		# mouse callback function
+		# rectangle select by two mouse clicks #+# not finished
 		if obj.mode == 'ImageFile':
 			def draw_circle(event,x,y,flags,param):
 				if event == cv2.EVENT_LBUTTONDBLCLK:
 					say("# !! mouse callback function" + str(event))
 					say([x,y])
+
 					cv2.circle(img,(x,y),3,(255,0,0),-1)
 					cv2.imshow('image',img)
 					obj.Proxy.img=img
@@ -201,33 +194,75 @@ VerticalLayout:
 			cv2.namedWindow('image')
 			cv2.setMouseCallback('image',draw_circle)
 
+		if obj.mode == 'Mask':
+			if not hasattr(obj.Proxy,'points'):
+				obj.Proxy.points=[]
+				obj.Proxy.selector=False
+
+			img2=img
+
+			def draw_mask(event,x,y,flags,param):
+				if event == cv2.EVENT_LBUTTONDOWN:
+					say("# !! mouse callback left down function" + str(event))
+					obj.Proxy.selector=True
+				if event == cv2.EVENT_LBUTTONUP:
+					say("# !! mouse callback left up function" + str(event))
+					obj.Proxy.selector=False
+				if  event == cv2.EVENT_MOUSEMOVE:
+					say("# !! mouse callback move " + str(event))
+					say([x,y,flags])
+					if obj.Proxy.selector:
+						obj.Proxy.points.append([x,y,obj.radius])
+					say(len(obj.Proxy.points))
+					pp=[x,y,obj.radius]
+
+					img2=img
+					#img2=img.copy()
+
+					for [x,y,R] in obj.Proxy.points:
+						if obj.invertMask:
+							color=(255,255,255)
+						else:
+							color=(0,0,0)
+						cv2.circle(img2,(x,y),R,color,-1)
+
+					img3=img2.copy()
+					cv2.circle(img3,(pp[0],pp[1]),pp[2],(255,0,0),1)
+					cv2.imshow("image",img3)
+
+			cv2.namedWindow('image')
+			cv2.setMouseCallback('image',draw_mask)
+			for [x,y,R] in obj.Proxy.points:
+				if obj.invertMask: color=(255,255,255)
+				else: color=(0,0,0)
+				
+				# mouse position as blue circle
+				cv2.circle(img2,(x,y),R,color,-1)
+				cv2.imshow("image",img2)
+
+			obj.Proxy.img=img
+
 		cv2.imshow('image',img)
 
 		obj.Proxy.img=img
 		obj.touch()
-
 		obj.Proxy.display=True
 
 	def plot2(self,h=None,w=None):
 
-
 		say("plot2  for -------" + self.obj.mode)
+		
+		try: self.root.ids['vela'].show()
+		except: pass
+		cv2.destroyWindow('image')
 
 		# add/reset the mathplotlibwidget 
-		try:
-			self.mpl
-		except:
-			self.add_mplw("mplw")
-		
-		
-		
-		
-		
+		try: self.mpl
+		except: self.add_mplw("mplw")
+
 		plt=self.mpl.figure
 		plt.clf()
-		
-		
-		#FreeCAD.plt=plt
+
 		obj=self.obj
 
 		try:
@@ -242,7 +277,7 @@ VerticalLayout:
 					say(obj.Proxy)
 					img = cv2.imread(obj.sourceFile)
 			else:
-#				say("Image from Object ..." + str(obj.sourceObject.Label))
+				say("Image from Object ..." + str(obj.sourceObject.Label))
 				try: img=obj.Proxy.img
 				except: img=None
 		except:
@@ -273,11 +308,6 @@ VerticalLayout:
 			say("skeleton image loaded")
 		except:
 			pass
-		
-#		if h <> None:
-#			res=resize(img,int(w+100),int(h+100))
-#			print "resized"
-#		else:
 
 		res=resize(img,int(plt.bbox.ymax-plt.bbox.ymin),int(plt.bbox.xmax-plt.bbox.xmin))
 		
@@ -296,8 +326,6 @@ VerticalLayout:
 		### -- fuer skelette 
 		
 		plt.figimage(res, 0,0,  cmap=plt2.cm.spectral, )
-		 
-		# plt.figimage(res, xo=1,yo=0, cmap=plt2.cm.spectral, origin="lower")
 		self.mpl.draw()
 
 
@@ -306,7 +334,7 @@ VerticalLayout:
 		obj=self.obj
 		m=obj.Proxy.dist_on_skel
 		#plt.imshow(m, cmap=plt.cm.spectral, interpolation='nearest')
-		plt.imshow(dist_on_skelw, cmap=plt.cm.PRGn, interpolation='nearest')
+		plt.imshow(m, cmap=plt.cm.PRGn, interpolation='nearest')
 		plt.show()
 
 
@@ -325,7 +353,7 @@ VerticalLayout:
 		except: pass
 
 		k=self.mpl.resizeEvent
-		self.mpl.resizeEvent = lambda e:onResize(self,e,k)
+		self.mpl.resizeEvent = lambda e:onResize(self,e,k,self.root.ids['vela'])
 
 
 
@@ -530,24 +558,23 @@ VerticalLayout:
 		self.obj.touch()
 		FreeCAD.ActiveDocument.recompute()
 
+	def snapshotImg(self):
+		cv2.imwrite('/tmp/'+self.obj.Label+'.png',self.obj.Proxy.img)
+
 	def modDialog(self):
 		FreeCAD.ActiveDocument.recompute()
 
 		try: t=config.configMode[self.obj.mode]
 		except: sayexc("modDialog Mode no mode " + self.obj.mode)
 
-		# widgets=config.configMode[self.obj.mode]['widgets']
 		for w in config.configMode[self.obj.mode]['widgets']:
 			self.add_widget(w['id'],w['params'][0],w['p2w'],w['w2p'])
 
-		# add plot widget
 		self.updateDialog()
-
-##		self.add_mplw("mplw")
 
 		if self.obj.mode ==  'HoughLinesPost' :
 			self.add_button("resetdata","HoughLines Post processing",lambda:tools.run_HoughLinesPost(self.obj,self))
-#			self.root.ids['vela'].hide()
+
 		elif self.obj.mode ==  'Pathes' :
 			self.add_button("resetdata","Pathes generater",lambda:run_pathes(self.obj,self))
 		elif self.obj.mode ==  'PathAnalyzer' :
@@ -560,8 +587,8 @@ VerticalLayout:
 			self.add_button("showimage","Show Color Map in separate Window",self.showcolormap)
 
 			self.add_button("resetdata","Recompute Data",lambda:recomputeData(self.obj))
-			self.add_button("resetdata","snapshot",self.snapshot)
-
+			self.add_button("resetdata","snapshot activeView",self.snapshot)
+			self.add_button("resetdata","snapshot Image",self.snapshotImg)
 		if self.obj.mode ==  'ImageFile' :
 			self.add_button("showimagex","Reset Zoom",self.resetZoom)
 
@@ -569,13 +596,12 @@ VerticalLayout:
 
 		# example access to a widget
 		#self.root.ids['resetdata'].hide()
+		#self.root.ids['vela'].hide()
 
 		# update layout
 		try:
 			self.root.ids['main'].layout.setStretchFactor(self.mpl, 1)
 		except: pass
-
-		# post command
 		self.plot2()
 
 def run_pathfinder (obj,app):
@@ -1047,12 +1073,10 @@ def execute_HoughLinesPost(proxy,obj):
 
 
 def execute_ImageFile(proxy,obj):
-	say("############################################")
+	say("####################jiji ########################")
 	say(obj.sourceFile)
 	try: 
 		img=cv2.imread(obj.sourceFile)
-		#---------------
-
 		if hasattr(obj.Proxy,"markers"): 
 			if len(obj.Proxy.markers)>=2:
 				#say(obj.Proxy.markers)
@@ -1092,6 +1116,39 @@ def execute_ImageFile(proxy,obj):
 		else: xx=obj.subX1
 		
 		obj.Proxy.img=obj.Proxy.img[obj.subY0:obj.subY0+yy,obj.subX0:obj.subX0+xx]
+
+
+
+def execute_Mask(proxy,obj):
+	say("################execute mask 2 ############################")
+	say(obj.Label)
+	say(obj.sourceObject.Label)
+	FreeCAD.ss=obj.sourceObject
+	if obj.undo:
+		say("undo points")
+		if hasattr(obj.Proxy,'points'):
+			obj.Proxy.points=[]
+
+
+	try: img=obj.sourceObject.Proxy.img.copy()
+	except: 
+		sayexc()
+		img=cv2.imread(__dir__+'/icons/freek.png')
+
+	if hasattr(obj.Proxy,'points'):
+		for [x,y,R] in obj.Proxy.points:
+			if obj.invertMask:
+				color=(255,255,255)
+			else:
+				color=(0,0,0)
+			cv2.circle(img,(x,y),R,color,-1)
+
+	obj.Proxy.img=img
+
+
+	say("done YY")
+
+
 
 
 def execute_HSV(proxy,obj):
@@ -1267,10 +1324,8 @@ def execute_Skeleton(proxy,obj):
 
 def execute_FatColor(proxy,obj):
 
-
-	import cv2
 	import matplotlib.pyplot as plt
-	from scipy import ndimage as ndi
+
 	from skimage.morphology import medial_axis
 
 	try: 
@@ -1445,6 +1500,11 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 			app.modDialog
 		)
 
+	def edit2(self):
+		self.hidden=True
+		self.createDialog()
+		self.edit()
+		
 
 	def setupContextMenu(self, obj, menu):
 		''' create the context menu''' 
@@ -1459,8 +1519,11 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 		action = menu.addAction("About " + cl)
 		action.triggered.connect(self.showVersion)
 
-		action = menu.addAction("Edit ...")
-		action.triggered.connect(self.edit)
+#		action = menu.addAction("Edit ...")
+#		action.triggered.connect(self.edit)
+
+		action = menu.addAction("Edit ... ")
+		action.triggered.connect(self.edit2)
 
 		action = menu.addAction("Show Image ...")
 		action.triggered.connect(self.Object.Proxy.app.plot)

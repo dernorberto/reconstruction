@@ -31,6 +31,11 @@ class MatplotlibWidget(FigureCanvas):
 		self.axes = self.figure.add_subplot(111)
 		self.setMinimumSize(self.size()*0.3)
 
+		print("---------------------- done")
+
+
+
+
 	def subplot(self,label='111'):
 		self.axes=self.figure.add_subplot(label)
 

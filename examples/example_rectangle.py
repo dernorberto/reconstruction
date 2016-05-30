@@ -21,8 +21,8 @@ fn=reconstruction.__path__[0] + "/../testdata/bn_990.png"
 
 t=createCV('ImageFile')
 t.sourceFile=fn
-t.subX1=100
-t.subY0=200
+#t.subX1=100
+#t.subY0=200
 
 t.invert=True
 

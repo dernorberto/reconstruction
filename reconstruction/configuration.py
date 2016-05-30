@@ -20,7 +20,7 @@ modes=[
 
 	'HSV','HoughLines','HoughLinesPost',
 	'Invert',
-	'Mixer','Morphing',
+	'Mask','Mixer','Morphing',
 
 	'Pathes', 'PathAnalyzer',
 	'Skeleton',
@@ -335,6 +335,40 @@ configMode['Color'] = {
 }
 
 
+configMode['Mask'] = {
+
+	'props' : [
+		['radius','App::PropertyInteger','Mask',20],
+		['invertMask','App::PropertyBool','Mask',False],
+		['undo','App::PropertyBool','Mask',False],
+	],
+
+	'widgets' : [ 
+
+		{
+			'id':'radius', 
+			'params' : ['dialer'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'invertMask', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+		{
+			'id':'undo', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+	]
+}
+
 configMode['Mixer'] = {
 
 	'props' : [
@@ -483,6 +517,7 @@ configMode['PathAnalyzer'] = {
 		['showPics','App::PropertyBool','PathAnalyzer',False],
 		['maxRadius','App::PropertyFloat','PathAnalyzer',200],
 		['useCanny','App::PropertyBool','PathAnalyzer',True],
+		['showCircles','App::PropertyBool','PathAnalyzer',False],
 	],
 
 	'widgets' : [ 
