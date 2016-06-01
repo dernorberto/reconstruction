@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#: utf-8 -*-
 #-------------------------------------------------
 #-- reconstruction workbench
 #--
@@ -42,7 +42,6 @@ modes=config.modes
 import reconstruction.mpl
 reload(reconstruction.mpl)
 
-# global countUpdater
 lasttime=0
 countUpdater=0
 
@@ -74,28 +73,6 @@ def recomputeData(obj):
 	say ("recompute done")
 
 
-def resize(img,y,x):
-	''' resize a cv2 image '''
-
-	yi,xi= img.shape[0],img.shape[1]
-
-	if 1.0*x/xi > 1.0*y/yi:
-		img2=cv2.resize(img,(xi*y/yi,y),interpolation = cv2.INTER_CUBIC)
-	else:
-		img2=cv2.resize(img,(x,yi*x/xi),interpolation = cv2.INTER_CUBIC)
-	return img2
-
-
-def onResize(obj,e,uk,vela):
-	''' event handler for onResize of a matplotlib widget '''
-
-	w=e.size().width()
-	h=e.size().height()
-	print(w,h)
-	obj.plot2()
-	uk(e)
-
-
 class CVGui(object):
 	''' GUI  interface for CV nodes'''
 
@@ -125,6 +102,120 @@ VerticalLayout:
 	def resetZoom(self):
 		self.obj.Proxy.markers=[]
 		self.plot()
+#------------------
+
+	def cv2selector(self):
+		say("CV2 selector ...")
+		obj=self.obj
+		say(obj)
+
+		try:
+			if obj.mode == 'ImageFile':
+				say("File ...")
+				say(obj.sourceFile)
+				img = cv2.imread(obj.sourceFile)
+			else:
+				#img=obj.sourceObject.Proxy.img
+				say("image geladn von sourceObject !!!!!!!!!!!!!!!!!")
+				img=obj.Proxy.img
+		except:
+			sayexc()
+		if img == None:
+			img=cv2.imread(__dir__+'/icons/freek.png')
+
+		obj.Proxy.img=img
+
+
+		try: 
+			if len(obj.Proxy.markers)>=2:
+				say(obj.Proxy.markers)
+				[x0,y0]=obj.Proxy.markers[0]
+				[x1,y1]=obj.Proxy.markers[1]
+				if x0 < x1: x0,x1 = x1,x0
+				if y0 < y1: y0,y1 = y1,y0
+				crop_img = img[y1:y0, x1:x0]
+				cv2.imshow("crop image",crop_img)
+				
+				scaler=img.shape[0]//crop_img.shape[0]
+				try:
+					#img=cv2.resize(crop_img,(img.shape[1],img.shape[1]*crop_img.shape[0]//crop_img.shape[1]),interpolation = cv2.INTER_CUBIC)
+					img=tools.resize(crop_img,400,800)
+				except:
+					sayexc()
+		except:
+			obj.Proxy.markers=[]
+
+#				if event == cv2.EVENT_LBUTTONDBLCLK:
+
+		if 1 :
+			if not hasattr(obj.Proxy,'points'):
+				obj.Proxy.points=[]
+				obj.Proxy.selector=False
+
+
+
+			img2=img
+
+			def draw_mask(event,x,y,flags,param):
+				radius=3
+				if event == cv2.EVENT_LBUTTONDOWN:
+					say("# !X mouse callback left down function" + str(event))
+					img2=img.copy()
+					R=10
+					color=(255,0,0)
+					cv2.circle(img2,(x,y),R,color,-1)
+					dst = cv2.addWeighted(img,0.7,img2,0.3,0)
+					cv2.imshow("image",dst)
+					obj.Proxy.selector=True
+					obj.Proxy.center=(x,y)
+				if event == cv2.EVENT_LBUTTONUP:
+					say("# !! mouse callback left up function" + str(event))
+					obj.Proxy.selector=False
+					img2=img.copy()
+					color=(255,0,0)
+					cv2.circle(img2,obj.Proxy.center,obj.Proxy.R,color,-1)
+## rectangle mode
+					cv2.rectangle(img2,obj.Proxy.center,obj.Proxy.point2,(255,255,0),-1)
+					obj.Proxy.img=img2
+
+
+
+				if  event == cv2.EVENT_MOUSEMOVE:
+					if obj.Proxy.selector:
+						say("# !XX! mouse callback move " + str(event))
+						
+						img2=img.copy()
+						R=np.sqrt((obj.Proxy.center[0]-x)**2+(obj.Proxy.center[1]-y)**2)
+						R=int(round(R))
+						obj.Proxy.point2=(x,y)
+						obj.Proxy.R=R
+						color=(255,0,0)
+						cv2.circle(img2,obj.Proxy.center,R,color,-1)
+						
+						cv2.rectangle(img2,obj.Proxy.center,(x,y),(255,255,0),-1)
+						# http://opencvinpython.blogspot.de/2014/09/basic-drawing-examples-drawing-line-cv2.html
+						
+						dst = cv2.addWeighted(img,0.7,img2,0.3,0)
+						cv2.imshow("image",dst)
+						obj.Proxy.img=img2
+				
+				obj.touch()
+
+			cv2.namedWindow('image')
+			cv2.setMouseCallback('image',draw_mask)
+			for [x,y,R] in obj.Proxy.points:
+				if obj.invertMask: color=(255,255,255)
+				else: color=(0,0,0)
+				
+				# mouse position as blue circle
+				cv2.circle(img2,(x,y),R,color,-1)
+
+		cv2.imshow('image',img)
+		obj.touch()
+		obj.Proxy.display=True
+
+
+#------------------
 
 	def plot(self):
 		say("Plot ...")
@@ -157,7 +248,7 @@ VerticalLayout:
 				scaler=img.shape[0]//crop_img.shape[0]
 				try:
 					#img=cv2.resize(crop_img,(img.shape[1],img.shape[1]*crop_img.shape[0]//crop_img.shape[1]),interpolation = cv2.INTER_CUBIC)
-					img=resize(crop_img,400,800)
+					img=tools.resize(crop_img,400,800)
 				except:
 					sayexc()
 		except:
@@ -166,11 +257,18 @@ VerticalLayout:
 		# mouse callback function
 		# rectangle select by two mouse clicks #+# not finished
 		if obj.mode == 'ImageFile':
+			
 			def draw_circle(event,x,y,flags,param):
 				if event == cv2.EVENT_LBUTTONDBLCLK:
+					obj.Proxy.markers=[]
+					img = cv2.imread(obj.sourceFile)
+					cv2.imshow('image',img)
+					obj.Proxy.img=img
+
+				if event == cv2.EVENT_LBUTTONDOWN:
 					say("# !! mouse callback function" + str(event))
 					say([x,y])
-
+					img=obj.Proxy.img
 					cv2.circle(img,(x,y),3,(255,0,0),-1)
 					cv2.imshow('image',img)
 					obj.Proxy.img=img
@@ -187,9 +285,12 @@ VerticalLayout:
 						if y0 < y1: y0,y1 = y1,y0
 						crop_img = img[y1:y0, x1:x0]
 						cv2.imshow("crop image",crop_img)
+						say("change IUmaege")
+						obj.Proxy.img=crop_img
 
-					#--------
+
 					obj.touch()
+
 
 			cv2.namedWindow('image')
 			cv2.setMouseCallback('image',draw_circle)
@@ -309,7 +410,7 @@ VerticalLayout:
 		except:
 			pass
 
-		res=resize(img,int(plt.bbox.ymax-plt.bbox.ymin),int(plt.bbox.xmax-plt.bbox.xmin))
+		res=tools.resize(img,int(plt.bbox.ymax-plt.bbox.ymin),int(plt.bbox.xmax-plt.bbox.xmin))
 		
 		# plt.figimage(res, 0, 0, alpha=.75, zorder=2)
 		
@@ -352,6 +453,16 @@ VerticalLayout:
 		try: self.root.ids['vela'].layout.addWidget(self.mpl)
 		except: pass
 
+		def onResize(obj,e,uk,vela):
+			''' event handler for onResize of a matplotlib widget '''
+
+			w=e.size().width()
+			h=e.size().height()
+			print(w,h)
+			obj.plot2()
+			uk(e)
+
+
 		k=self.mpl.resizeEvent
 		self.mpl.resizeEvent = lambda e:onResize(self,e,k,self.root.ids['vela'])
 
@@ -359,9 +470,13 @@ VerticalLayout:
 
 	def add_button(self,idname,label,method):
 		bt=QtGui.QPushButton(label)
-		bt.clicked.connect(method)
+		if method <>None:
+			bt.clicked.connect(method)
+		else:
+			bt.clicked.connect(lambda:sayErr("button "+ label +" clicked"))
 		self.root.ids[idname]=bt
 		self.root.ids['main'].layout.addWidget(bt)
+
 
 	def run(self,dial):
 		import time
@@ -424,7 +539,7 @@ VerticalLayout:
 		hbox.addStretch(1)
 		hbox.addWidget(dial)
 		# hbox.addStretch(1)
-		
+
 		if not norun:
 			hbox.addWidget(bt)
 			hbox.addWidget(bt2)
@@ -438,6 +553,7 @@ VerticalLayout:
 
 
 	def add_dialernr(self,idname,label,method):
+		# dialier without run 
 		dial=self.add_dialer2(idname,label,method,norun=True)
 		dial.valueChanged.connect(updater)
 
@@ -458,7 +574,7 @@ VerticalLayout:
 		self.root.ids[idname]=dial
 
 		lab=QtGui.QLabel(idname)
-		
+
 		w=QtGui.QWidget()
 		hbox = QtGui.QVBoxLayout()
 		w.setLayout(hbox)
@@ -477,15 +593,15 @@ VerticalLayout:
 		dial.textChanged.connect(m2)
 		self.root.ids[idname]=dial
 		lab=QtGui.QLabel(idname)
-		
+
 		w=QtGui.QWidget()
 		hbox = QtGui.QHBoxLayout()
 		w.setLayout(hbox)
-		
+
 		#hbox.addStretch(1)
 		hbox.addWidget(lab)
 		hbox.addWidget(dial)
-		
+
 		self.root.ids['main'].layout.addWidget(w)
 
 
@@ -500,7 +616,7 @@ VerticalLayout:
 
 
 	def add_widget(self,idname,widgetclassname,p2w,w2p):
-		x=self.obj.getPropertyByName(idname)
+		### x=self.obj.getPropertyByName(idname)
 		f=lambda ww: setattr(self.obj,idname,p2w(ww))
 		if widgetclassname=='dialer2':
 			self.add_dialer2(idname,widgetclassname +  " xx for "  +  idname ,f)
@@ -514,6 +630,9 @@ VerticalLayout:
 			self.add_lineEdit(idname,widgetclassname +  " xx for "  +  idname ,f)
 		if widgetclassname=='checkBox':
 			self.add_checkBox(idname,widgetclassname +  " xx for "  +  idname ,f)
+		if widgetclassname=='button':
+			f=None
+			self.add_button(idname,idname ,f)
 
 
 	def updateDialog(self):
@@ -523,8 +642,12 @@ VerticalLayout:
 			wid = None
 			try:
 				wid=self.root.ids[w['id']]
-				val=self.obj.getPropertyByName(w['id'])
 				wic=w['params'][0]
+				if wic == 'button': 
+					pass
+					continue
+
+				val=self.obj.getPropertyByName(w['id'])
 				# say ([w,val,wic])
 				if wic == 'lineEdit': wid.setText(val)
 				if wic == 'slider': wid.setValue(val)
@@ -548,7 +671,7 @@ VerticalLayout:
 	#
 
 	def close(self):
-		''' clos diualog and view'''
+		''' clos dialog and view'''
 		
 		self.root.ids['main'].hide()
 		self.root.ids['vela'].hide()
@@ -572,25 +695,41 @@ VerticalLayout:
 
 		self.updateDialog()
 
+		btsok=False
 		if self.obj.mode ==  'HoughLinesPost' :
 			self.add_button("resetdata","HoughLines Post processing",lambda:tools.run_HoughLinesPost(self.obj,self))
+			btsok=True
 
-		elif self.obj.mode ==  'Pathes' :
+		if self.obj.mode ==  'Pathes' :
 			self.add_button("resetdata","Pathes generater",lambda:run_pathes(self.obj,self))
-		elif self.obj.mode ==  'PathAnalyzer' :
+			btsok=True
+
+		if self.obj.mode ==  'PathAnalyzer' :
 			self.add_button("resetdata","Detect Pathes in the Image",lambda:run_pathfinder(self.obj,self))
 			self.add_button("resetdata","Analyse Path (and create exact Wire)",lambda:run_pathanalyzer(self.obj,self,True,self.obj.createWire))
 			self.add_button("updateimage","Update Image",self.plot2)
-		else:
-			self.add_button("updateimage","Update Image",self.plot2)
-			self.add_button("showimage","Show Image in separate Window",self.plot)
-			self.add_button("showimage","Show Color Map in separate Window",self.showcolormap)
+			btsok=True
 
+		if not btsok:
+			self.add_button("updateimage","Update Image",self.plot2)
+
+			if self.obj.mode ==  'ImageFile' :
+##				self.add_button("showimage","Select Subrectangle V0",self.plot)
+				pass
+			elif self.obj.mode ==  'Mask' :
+				self.add_button("showimage","Set Mask",self.plot)
+			else:
+				self.add_button("showimage","Show Image in separate Window",self.plot)
+
+			self.add_button("showimage","Simple Subimage Selector V1",self.cv2selector)
+##			self.add_button("showimage","Show Color Map in separate Window",self.showcolormap)
 			self.add_button("resetdata","Recompute Data",lambda:recomputeData(self.obj))
-			self.add_button("resetdata","snapshot activeView",self.snapshot)
-			self.add_button("resetdata","snapshot Image",self.snapshotImg)
-		if self.obj.mode ==  'ImageFile' :
-			self.add_button("showimagex","Reset Zoom",self.resetZoom)
+			self.add_button("resetdata","Snapshot active 3D View",self.snapshot)
+			self.add_button("resetdata","Snapshot Image",self.snapshotImg)
+			
+
+##		if self.obj.mode ==  'ImageFile' :
+##			self.add_button("showimagex","Reset Zoom",self.resetZoom)
 
 		self.add_button("resetdata","close",self.close)
 
@@ -1073,92 +1212,94 @@ def execute_HoughLinesPost(proxy,obj):
 
 
 def execute_ImageFile(proxy,obj):
-	say("####################jiji ########################")
-	say(obj.sourceFile)
+
 	try: 
 		img=cv2.imread(obj.sourceFile)
-		if hasattr(obj.Proxy,"markers"): 
-			if len(obj.Proxy.markers)>=2:
-				#say(obj.Proxy.markers)
-				[x0,y0]=obj.Proxy.markers[0]
-				[x1,y1]=obj.Proxy.markers[1]
-				if x0 < x1: x0,x1 = x1,x0
-				if y0 < y1: y0,y1 = y1,y0
-				crop_img = img[y1:y0, x1:x0]
-				#say(img.shape)
-				#say(crop_img.shape)
-				scaler=img.shape[0]//crop_img.shape[0]
-				#say(scaler)
-				#say([img.shape[1],img.shape[0]])
-				try:
-					img=cv2.resize(crop_img,(img.shape[1],img.shape[1]*crop_img.shape[0]//crop_img.shape[1]),interpolation = cv2.INTER_CUBIC)
-				except:
-					sayexc()
+		if hasattr(obj.Proxy,"markers") and len(obj.Proxy.markers)>=2:
+			[x0,y0]=obj.Proxy.markers[0]
+			[x1,y1]=obj.Proxy.markers[1]
+			if x0 < x1: x0,x1 = x1,x0
+			if y0 < y1: y0,y1 = y1,y0
+			crop_img = img[y1:y0, x1:x0]
+
+			scaler=img.shape[0]//crop_img.shape[0]
+
+			try:
+				img=cv2.resize(crop_img,
+						(img.shape[1],img.shape[1]*crop_img.shape[0]//crop_img.shape[1]),
+						interpolation = cv2.INTER_CUBIC)
+			except: sayexc()
+
 		obj.Proxy.img=img
-		
-		
-		#----------------
+
+
+#---------------------
+		# cv2 selector postprocessing
+		if hasattr(obj.Proxy,"center"): 
+			img2=img.copy()
+			img2 = np.zeros(img.shape, np.uint8)
+			color=(255,255,255)
+			if obj.rectangleSelectMode:
+				cv2.rectangle(img2,obj.Proxy.center,obj.Proxy.point2,color,-1)
+			else:
+				cv2.circle(img2,obj.Proxy.center,obj.Proxy.R,color,-1)
+
+			img3 = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
+			if obj.invert: img=255-img
+			res = cv2.bitwise_and(img,img,mask = img3)
+			if obj.invert: res=255-res
+			obj.Proxy.img=res
+#---------------------
+
+
+
 	except:
 		sayexc()
-		sayErr(__dir__+'/icons/freek.png')
-		obj.Proxy.img=cv2.imread(__dir__+'/icons/freek.png')
-	if obj.Proxy.img == None:
 		sayErr(__dir__+'/icons/freek.png')
 		obj.Proxy.img=cv2.imread(__dir__+'/icons/freek.png')
 
 	# subimage selection
 	if obj.subX1>0 or obj.subY1>0:
-		say("size cut ...")
-		say(img.shape)
 		if obj.subY1 == 0: yy=img.shape[0]
 		else: yy=obj.subY1
+
 		if obj.subX1 == 0: xx=img.shape[1]
 		else: xx=obj.subX1
-		
+
 		obj.Proxy.img=obj.Proxy.img[obj.subY0:obj.subY0+yy,obj.subX0:obj.subX0+xx]
 
 
 
 def execute_Mask(proxy,obj):
-	say("################execute mask 2 ############################")
-	say(obj.Label)
-	say(obj.sourceObject.Label)
-	FreeCAD.ss=obj.sourceObject
-	if obj.undo:
-		say("undo points")
-		if hasattr(obj.Proxy,'points'):
-			obj.Proxy.points=[]
 
+	if obj.undo and hasattr(obj.Proxy,'points'): obj.Proxy.points=[]
 
 	try: img=obj.sourceObject.Proxy.img.copy()
 	except: 
 		sayexc()
 		img=cv2.imread(__dir__+'/icons/freek.png')
 
+	# draw for every point a full circle
 	if hasattr(obj.Proxy,'points'):
 		for [x,y,R] in obj.Proxy.points:
-			if obj.invertMask:
-				color=(255,255,255)
-			else:
-				color=(0,0,0)
+			if obj.invertMask: color=(255,255,255)
+			else: color=(0,0,0)
 			cv2.circle(img,(x,y),R,color,-1)
 
 	obj.Proxy.img=img
 
 
-	say("done YY")
-
-
 
 
 def execute_HSV(proxy,obj):
+
 	say("hsv ..")
 
 	try: img=obj.sourceObject.Proxy.img.copy()
 	except: img=cv2.imread(__dir__+'/icons/freek.png')
 
 	hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-	
+
 	lower=np.array([obj.valueColor-obj.deltaColor,0,0])
 	upper=np.array([obj.valueColor+obj.deltaColor,255,255])
 	mask = cv2.inRange(hsv, lower, upper)
@@ -1171,21 +1312,20 @@ def execute_HSV(proxy,obj):
 
 
 def execute_Invert(proxy,obj):
+
 	say("invert ..")
 
 	try: img=obj.sourceObject.Proxy.img.copy()
 	except: img=cv2.imread(__dir__+'/icons/freek.png')
 
 	imagem = 255-img
-	# imagem = 2*img
 	obj.Proxy.img=imagem
-	say(imagem)
-	# say("ok")
+
 
 def execute_Pathes(proxy,obj):
 	say("execute pathes")
 	try: 
-		say("try rpoxy.lock")
+		say("try peoxy.lock")
 		if proxy.lock: return
 	except:
 		say("except proxy lock")
@@ -1193,13 +1333,6 @@ def execute_Pathes(proxy,obj):
 	run_pathes(obj,None)
 	say("invert ..")
 	proxy.lock=False
-
-
-#	try: img=obj.sourceObject.Proxy.img.copy()
-#	except: img=cv2.imread(__dir__+'/icons/freek.png')
-
-#	obj.Proxy.img=imagem
-	say("ok")
 
 
 def execute_PathAnalyzer(proxy,obj):
@@ -1214,6 +1347,8 @@ def execute_PathAnalyzer(proxy,obj):
 
 
 
+'''
+alte version
 
 def execute_SkeletonV0(proxy,obj):
 	say("skeleton ..")
@@ -1276,16 +1411,15 @@ def execute_SkeletonV0(proxy,obj):
 		if zeros==size:
 			done = True
 
-	# cv2.imshow("skeleton",skel)
 	say("skeleton done")
-	
+
 	hsv = cv2.merge((skel,g,g))
 	bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-	
-	
-	obj.Proxy.img=skel
+
+	#obj.Proxy.img=skel
 	obj.Proxy.img=bgr
 
+'''
 
 
 
@@ -1335,17 +1469,8 @@ def execute_FatColor(proxy,obj):
 		sayexc()
 		img=cv2.imread(__dir__+'/icons/freek.png')
 
-# 	img=App.ActiveDocument.My_ColorSpace.Proxy.img
-
-	# r,g,b=cv2.split(img)
-
-
-	#mask = cv2.inRange(hsv, lower, upper)
-
 	lower = np.array([255,255,255])
-	# lower = np.array([200,200,200])
 	upper = np.array([255,255,255])
-
 
 	mask = cv2.inRange(img, lower, upper)
 	res = cv2.bitwise_and(img,img, mask= mask)
@@ -1361,15 +1486,13 @@ def execute_FatColor(proxy,obj):
 		   [0, 1, 0],
 		   [1, 0, 1]], dtype=np.uint8)
 
-
-
 	dilation = cv2.dilate(res,kernel,iterations = 1)
 	erode1 = cv2.erode(res,kernelPLUS,iterations = 1)
 	erode2 = cv2.erode(res,kernelCROSS,iterations = 1)
 	erode = cv2.erode(res,kernel,iterations = 1)
 	res=dilation
 	res=erode1 + erode2 
-	# res=erode
+
 	dilation = cv2.dilate(res,kernel,iterations = 1)
 	res=dilation
 
@@ -1385,37 +1508,26 @@ class _CV(Animation._Actor):
 
 	def __init__(self,obj):
 		obj.Proxy = self
-		self.Type = self.__class__.__name__
-		self.obj2 = obj
+#		self.Type = self.__class__.__name__
+#		self.obj2 = obj
 		_ViewProviderCV(obj.ViewObject) 
 
 
 	def execute(self,obj):
+
+		# hidden objects are not executed
 		if not obj.ViewObject.Visibility:
 			sayW("NOT execute " + obj.mode +  " on " + obj.Label)
 			return
-			
+
 		sayW("execute " + obj.mode +  " on " + obj.Label)
 		exec("rc=execute_"+obj.mode+"(self,obj)")
-		
-		if obj.invert:
-			self.img=255-self.img
 
-		if rc <> None: say(("execute " + obj.mode + " rc=",rc))
-		try:
-#			say("anzeigen?")
-			if obj.Proxy.display == True: 
-				say("ja ...")
-				# deaktiverter debug show
-				##cv2.imshow(obj.Label,obj.Proxy.img)
-				say("gezeigt !!")
-		except:
-			pass
+		if obj.invert: self.img=255-self.img
+
+		if rc <> None: say(("executed " + obj.mode + " rc=",rc))
 
 		try:
-#			say("zeige Dialog")
-#			say(obj.Label)
-#			say(obj.ViewObject.Proxy.edit)
 			if obj.ViewObject.Proxy.edit <> None:
 #				say("erzeuge dialig")
 				try:
@@ -1426,9 +1538,7 @@ class _CV(Animation._Actor):
 					if obj.ViewObject.Proxy.hidden:
 						obj.ViewObject.Proxy.edit()
 					obj.ViewObject.Proxy.hidden=True
-					
 					obj.ViewObject.Proxy.Object.Proxy.app.plot2()
-#				say("okay")
 			else:
 #				say("muss edit erzeugen")
 				obj.ViewObject.Proxy.createDialog()
@@ -1439,31 +1549,34 @@ class _CV(Animation._Actor):
 
 		except:
 			sayexc()
-			
+
 		obj.ViewObject.Proxy.Object.Proxy.app.updateDialog()
 		return rc
 
 
 	def onChanged(self,obj,prop):
-		# say(["onChanged " + str(self),obj,prop,obj.getPropertyByName(prop)])
 		if prop == 'mode': changeMode(obj,obj.mode)
 
 	@property
 	# testcase for dynamic property, to call use 
 	# App.ActiveDocument.My_ImageFile.Proxy.myprop
 	# http://stackoverflow.com/questions/1325673/how-to-add-property-to-a-python-class-dynamically
+
 	def myprop(self):
 		say("myprop called")
 		return "Return of MYPROP"
 
 
 
-
 class _ViewProviderCV(Animation._ViewProviderActor):
 	''' the gui for a CV node '''
 
+	edit=None
+
+
 	def __init__(self,vobj):
 		self.attach(vobj)
+
 
 	def attach(self,vobj):
 		self.emenu=[]
@@ -1497,14 +1610,13 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 				self.Object.Label+": "+self.Object.mode,
 				self.Object.Label+": "+self.Object.mode
 				),
-			app.modDialog
-		)
+			app.modDialog)
 
 	def edit2(self):
 		self.hidden=True
 		self.createDialog()
 		self.edit()
-		
+
 
 	def setupContextMenu(self, obj, menu):
 		''' create the context menu''' 
@@ -1514,13 +1626,9 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 		try: t=config.configMode[self.Object.mode]
 		except: sayexc("setupContextMenu no value for property mode " + self.Object.mode)
 
-
 		cl=self.Object.Proxy.__class__.__name__
 		action = menu.addAction("About " + cl)
 		action.triggered.connect(self.showVersion)
-
-#		action = menu.addAction("Edit ...")
-#		action.triggered.connect(self.edit)
 
 		action = menu.addAction("Edit ... ")
 		action.triggered.connect(self.edit2)
@@ -1533,9 +1641,6 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 
 		action = menu.addAction("Show colormap ...")
 		action.triggered.connect(self.Object.Proxy.app.showcolormap)
-
-
-	edit=None
 
 
 	def setEdit(self,vobj,mode=0):
@@ -1560,10 +1665,10 @@ def createCV(mode='ImageFile',label=None):
 	obj.addProperty('App::PropertyEnumeration','mode',"Base").mode=modes
 	obj.addProperty('App::PropertyBool','invert',"Base").invert=False
 	
-	obj.addProperty('App::PropertyInteger','subX0',"Base").subX0=0
-	obj.addProperty('App::PropertyInteger','subX1',"Base").subX1=0
-	obj.addProperty('App::PropertyInteger','subY0',"Base").subY0=0
-	obj.addProperty('App::PropertyInteger','subY1',"Base").subY1=0
+	#obj.addProperty('App::PropertyInteger','subX0',"Base").subX0=0
+	#obj.addProperty('App::PropertyInteger','subX1',"Base").subX1=0
+	#obj.addProperty('App::PropertyInteger','subY0',"Base").subY0=0
+	#obj.addProperty('App::PropertyInteger','subY1',"Base").subY1=0
 	
 	obj.mode=mode
 	changeMode(obj,obj.mode)

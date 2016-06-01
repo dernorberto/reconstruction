@@ -238,10 +238,29 @@ configMode['ImageFile'] = {
 		['testDialer','App::PropertyInteger','ImageFile',50],
 		['testLineEdit','App::PropertyString','ImageFile',"test"],
 		['testcheckBox','App::PropertyBool','ImageFile',True],
+		['rectangleSelectMode','App::PropertyBool','ImageFile',False],
+
+		['subX0','App::PropertyInteger',"SubSelect",0],
+		['subX1','App::PropertyInteger',"SubSelect",0],
+		['subY0','App::PropertyInteger',"SubSelect",0],
+		['subY1','App::PropertyInteger',"SubSelect",0],
+
+		['vl','App::PropertyVectorList',"Base",[]]
+
+	],
+
+	'widgets' : [ 
+
+		{
+			'id':'rectangleSelectMode', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
 	],
 
 
-	'widgets' : [ 
+	'widgetsdemo' : [ 
 
 		{
 			'id':'testDialer', 
@@ -267,6 +286,23 @@ configMode['ImageFile'] = {
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
+
+		{
+			'id':'xyz', 
+			'params' : ['button'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
+
+		{
+			'id':'rectangleSelectMode', 
+			'params' : ['checkBox'],
+			'p2w' : lambda x:x,
+			'w2p' : lambda x:x
+		},
+
 
 	]
 }
@@ -347,7 +383,7 @@ configMode['Mask'] = {
 
 		{
 			'id':'radius', 
-			'params' : ['dialer'],
+			'params' : ['dialernr'],
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
@@ -365,6 +401,7 @@ configMode['Mask'] = {
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
 
 	]
 }

@@ -50,19 +50,20 @@ t3.threshold=3
 t4=createCV("PathAnalyzer")
 t4.sourceObject=t3
 t4.pathSelection=True
-t4.N=7
-t4.Threshold=84
+t4.N=9
+t4.Threshold=80
 t4.useCanny=False
+t4.radius=100
 
 
 
 
-
-for tt in [t,t2,t3,t4]:
-	tt.ViewObject.Proxy.hidden=True
-	tt.ViewObject.Proxy.createDialog()
-	tt.ViewObject.Proxy.edit()
-	tt.Proxy.execute(tt)
-	App.activeDocument().recompute()
-	tt.Proxy.app.plot2()
+if 0:
+	for tt in [t,t2,t3,t4]:
+		tt.ViewObject.Proxy.hidden=True
+		tt.ViewObject.Proxy.createDialog()
+		tt.ViewObject.Proxy.edit()
+		tt.Proxy.execute(tt)
+		App.activeDocument().recompute()
+		tt.Proxy.app.plot2()
 

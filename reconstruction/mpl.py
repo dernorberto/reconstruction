@@ -19,6 +19,8 @@ class MatplotlibWidget(FigureCanvas):
 	def __init__(self, parent=None, width=5, height=4, dpi=100):
 
 		super(MatplotlibWidget, self).__init__(Figure())
+
+		self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 		self.setParent(parent)
 		self.figure = Figure(figsize=(width, height), dpi=dpi) 
 		self.canvas = FigureCanvas(self.figure)

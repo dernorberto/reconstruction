@@ -226,7 +226,7 @@ def drawErosion(circles):
 
 
 def mkline(l):
-	''' create a FreeCAD line from 4 coors '''
+	''' create a FreeCAD line from 4 coords '''
 
 	s="line"
 	for co in l: s += '_' + str(co)
@@ -389,6 +389,18 @@ def create_clusters(arc2lines,a,b,vobj):
 		count += 1
 
 	return clusters
+
+def resize(img,y,x):
+	''' resize a cv2 image '''
+
+	yi,xi= img.shape[0],img.shape[1]
+
+	if 1.0*x/xi > 1.0*y/yi:
+		img2=cv2.resize(img,(xi*y/yi,y),interpolation = cv2.INTER_CUBIC)
+	else:
+		img2=cv2.resize(img,(x,yi*x/xi),interpolation = cv2.INTER_CUBIC)
+	return img2
+
 
 
 def run_HoughLinesPost(obj,vobj):

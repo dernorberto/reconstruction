@@ -175,7 +175,9 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 
 					# create the FreeCAD line objects
 					if createFC:
-						points=[FreeCAD.Vector(mx-0.5*d*np.cos(am),my-0.5*d*np.sin(am),0),FreeCAD.Vector(mx+0.5*d*np.cos(am),my+0.5*d*np.sin(am),0)]
+						zz=0
+						zz=-2*l
+						points=[FreeCAD.Vector(mx-0.5*d*np.cos(am),my-0.5*d*np.sin(am),zz),FreeCAD.Vector(mx+0.5*d*np.cos(am),my+0.5*d*np.sin(am),zz)]
 						print "create Line"
 						print points
 						Draft.makeWire(points,closed=False,face=True,support=None)
