@@ -92,7 +92,7 @@ def colstart(startpts,cimg):
 	for p in startpts:
 		x=p[0]
 		y=p[1]
-		cv2.circle(cimg,(y,x),2,(0,255,255),-1)
+		cv2.circle(cimg,(y,x),2,(55,55,0),-1)
 
 
 
@@ -200,6 +200,8 @@ class PathFinder():
 		coldreier(dreier,cimg)
 		colstart(startpts,cimg)
 		self.imgOut=cimg
+		
+		self.imgOut=255-cimg
 
 		if showPics: cv2.imshow('Canny Edge Detection',ed2)
 

@@ -73,23 +73,35 @@ def sayexc(mess=''):
 YourSpecialCreator=Animation.createManager
 
 def  fv(name="vertical",title=''):
-	w=QtGui.QWidget()
-	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
+	# w=QtGui.QWidget()
+	t=QtGui.QLabel("my widget")
+	w=MyDockWidget(t,"Reconstruction WB")
+	
 ###	w.setStyleSheet("QWidget { font: bold 18px;color:brown;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+
+	if title <>'': w.setWindowTitle(title)
+	
 	layout = QtGui.QVBoxLayout()
 	layout.setAlignment(QtCore.Qt.AlignTop)
-	w.setLayout(layout)
+	#w.layout=layout
+	#w.setLayout(layout)
 
-#	pB= QtGui.QLabel(name)
-#	layout.addWidget(pB)
-	if title <>'': w.setWindowTitle(title)
+	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 	w.show()
-	w.layout=layout
+	try:
+		FreeCAD.w5.append(w)
+	except:
+		FreeCAD.w5=[w]
+
 	return w
+
 
 def  fh(name="horizontal",title=''):
 	w=QtGui.QWidget()
+	
+	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	
 ###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 	layout = QtGui.QHBoxLayout()
 	layout.setAlignment(QtCore.Qt.AlignLeft)
@@ -167,6 +179,7 @@ class Miki():
 		self.app=None
 		self.ids={}
 		self.classes={}
+		getdockwindowMgr()
 
 
 
@@ -441,6 +454,7 @@ class Miki():
 					print "//*** "+ex
 					exec(ex)
 					print parent
+		print "Ende build"
 
 
 	def showSo(self):
@@ -521,13 +535,16 @@ class Miki():
 	def run(self,string,cmd=None):
 		print "parse2 ...."
 		self.parse2(string)
-		print "build ..."
+		print "build ...#"
 		self.build()
+		
+		print "build done jujk"
 		print "showSo ..."
 		self.showSo()
 		if cmd<>None:
+			print "CMD ..."
+			print cmd 
 			cmd()
-		print "done"
 
 
 	def roots(self):
@@ -554,6 +571,146 @@ class Miki():
 		for r in self.roots():
 			print r
 
+################
+
+from PySide import QtGui, QtCore
+
+class MyDockWidget(QtGui.QDockWidget):
+
+	def __init__(self, title_widget,objectname):
+		
+		QtGui.QDockWidget.__init__(self)
+		
+		
+
+		self.title_widget = title_widget
+		self.setWindowTitle(objectname)
+		self.setObjectName(objectname)
+		
+#		self.toggle_title_widget(False)
+#		self.toggle_title_widget(True)
+#		self.topLevelChanged.connect(self.toggle_title_widget)
+		self.setTitleBarWidget(None)
+		
+		self.setMinimumSize(200, 185)
+		
+		self.centralWidget = QtGui.QWidget(self)
+		self.setWidget(self.centralWidget)        
+		#self.centralWidget.setMaximumHeight(800)
+		
+		
+		layout = QtGui.QVBoxLayout()
+		self.ll=layout
+		self.centralWidget.setLayout(layout)
+		self.scroll=QtGui.QScrollArea()
+		self.liste=QtGui.QWidget()
+		self.lilayout=QtGui.QVBoxLayout()
+		self.liste.setLayout(self.lilayout)
+		
+		mygroupbox = QtGui.QGroupBox()
+		mygroupbox.setStyleSheet("QWidget { background-color: lightblue;margin:0px;padding:0px;}\
+		QPushButton { margin-right:0px;margin-left:0px;margin:0 px;padding:0px;;\
+		background-color: lightblue;text-align:left;;padding:6px;padding-left:4px;color:brown; }")
+		self.mygroupbox=mygroupbox
+
+		myform = QtGui.QFormLayout()
+		self.myform=myform
+		self.myform.setSpacing(0)
+		mygroupbox.setLayout(myform)
+
+		scroll = QtGui.QScrollArea()
+		scroll.setWidget(mygroupbox)
+		scroll.setWidgetResizable(True)
+		self.lilayout.addWidget(scroll)
+
+		self.pushButton00 = QtGui.QPushButton(QtGui.QIcon('icons:freecad.svg'),objectname)
+		self.pushButton01 = QtGui.QPushButton(
+			QtGui.QIcon(FreeCAD.ConfigGet('UserAppData')+'/Mod/mylib/icons/mars.png'),"Mars" )
+		#self.pushButton01.clicked.connect(self.start)
+
+		layout.addWidget(self.pushButton00)
+#		layout.addWidget(self.liste)
+#		layout.addWidget(self.pushButton01)
+
+		dw=QtGui.QWidget()
+		dwl = QtGui.QHBoxLayout()
+		dw.setLayout(dwl)
+		self.dwl=dwl
+		
+		layout.addWidget(dw)
+		#self.setTitleBarWidget(dw)
+		
+		l=QtGui.QLabel('Label')
+		#dwl.addWidget(l)
+		self.add_top(l)
+
+		b=QtGui.QPushButton('Butto')
+		#dwl.addWidget(b)
+		self.add_top(b)
+		
+		b=QtGui.QPushButton(QtGui.QIcon('icons:freecad.svg'),'Icon+Button')
+		#dwl.addWidget(b)
+		self.add_top(b)
+
+		b=QtGui.QPushButton(QtGui.QIcon('icons:view-refresh.svg'),'')
+		self.add_top(b)
+
+		b=QtGui.QPushButton(QtGui.QIcon('/home/thomas/.FreeCAD/Mod/reconstruction/icons/std_viewscreenshot.svg'),'Foto Image')
+		self.add_top(b)
+
+		b=QtGui.QPushButton(QtGui.QIcon('/home/thomas/.FreeCAD/Mod/reconstruction/icons/web-home.svg'),'Foto 3D')
+		self.add_top(b)
+
+
+
+		layout.setSpacing(0)
+		self.layout=layout
+
+
+	def add_top(self,widget):
+		self.dwl.addWidget(widget)
+
+
+	def toggle_title_widget(self, off):
+		if off:
+			self.setTitleBarWidget(None)
+		else:
+			self.setTitleBarWidget(self.title_widget)
+
+def getMainWindowByName(name):
+	toplevel2 = QtGui.qApp.topLevelWidgets()
+	for i in toplevel2:
+		if name == i.windowTitle():
+			i.show()
+			return i
+		
+	r=QtGui.QMainWindow()
+	
+	FreeCAD.r=r
+	r.setWindowTitle(name)
+	r.show()
+	return r
+
+def getdockwindowMgr():
+	pass
+
+def getdockwindowMgr2():
+	if 1:
+		w = getMainWindowByName("name")
+		t = QtGui.QLabel('Title 1')
+		d = MyDockWidget(t,"huhu")
+		w.addDockWidget(QtCore.Qt.LeftDockWidgetArea, d)
+		t = QtGui.QLabel('Title 2')
+		d2 = MyDockWidget(t,"haha")
+		w.addDockWidget(QtCore.Qt.LeftDockWidgetArea, d2)
+		w.tabifyDockWidget(d2, d);
+		w.show()
+		FreeCAD.dockwindowMgr=w
+		return w
+
+
+
+################
 
 
 

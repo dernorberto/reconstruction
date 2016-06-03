@@ -73,6 +73,52 @@ def recomputeData(obj):
 	say ("recompute done")
 
 
+def getMainWindowByName(name,separateMainWindow):
+	if not separateMainWindow:
+		return FreeCAD.Gui.getMainWindow()
+
+	toplevel2 = QtGui.qApp.topLevelWidgets()
+	for i in toplevel2:
+		if name == i.windowTitle():
+			i.show()
+			return i
+		
+	r=QtGui.QMainWindow()
+	r.setWindowTitle(name)
+	FreeCAD.r=r
+	r.show()
+	r.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	return r
+
+
+def dockit():
+
+	separateMainWindow=False
+
+	# anzeige als separates Hauoptfenster ...
+	separateMainWindow=True
+
+	w2=getMainWindowByName("Reconstruction Tools",separateMainWindow)
+
+	for w in FreeCAD.w5:
+		say(w.windowTitle())
+		try:
+			w2.addDockWidget(QtCore.Qt.TopDockWidgetArea, w)
+			w.setAllowedAreas(QtCore.Qt. AllDockWidgetAreas)
+
+		except:  
+			sayexc()
+			FreeCAD.w5=[]
+
+	last=None
+	for c in w2.children():
+		if c.__class__.__name__ =='MyDockWidget':
+			print c.windowTitle()
+			if last <> None:
+				w2.tabifyDockWidget(last, c)
+			last=c
+
+
 class CVGui(object):
 	''' GUI  interface for CV nodes'''
 
@@ -84,7 +130,7 @@ VerticalLayout:
 #	QtGui.QLabel:
 #			setText:"***    My    C V    Dialog ***"
 
-VerticalLayout:
+HorizontalLayout:
 		id:'vela'
 #		setFixedHeight: 500
 #		setFixedWidth: 500
@@ -612,7 +658,9 @@ VerticalLayout:
 		m2= lambda: method(dial.isChecked())
 		dial.clicked.connect(m2)
 		self.root.ids[idname]=dial
-		self.root.ids['main'].layout.addWidget(dial)
+
+		l=self.root.ids['main'].layout
+		l.addWidget(dial)
 
 
 	def add_widget(self,idname,widgetclassname,p2w,w2p):
@@ -1569,6 +1617,7 @@ class _CV(Animation._Actor):
 
 
 class _ViewProviderCV(Animation._ViewProviderActor):
+
 	''' the gui for a CV node '''
 
 	edit=None
@@ -1593,6 +1642,9 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 	def getIcon(self):
 		return  __dir__+ '/icons/'+self.Object.mode+'.svg'
 
+	def doubleClicked(self,vobj):
+		self.edit2()
+
 
 	def createDialog(self): 
 
@@ -1606,16 +1658,24 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 		app.obj=self.Object
 		self.Object.Proxy.app=app
 
+#		self.edit= lambda:miki2.run(CVGui.layout.format(
+#				self.Object.Label+": "+self.Object.mode,
+#				self.Object.Label+": "+self.Object.mode
+#				),
+#			app.modDialog)
+
 		self.edit= lambda:miki2.run(CVGui.layout.format(
-				self.Object.Label+": "+self.Object.mode,
+				self.Object.Label,
 				self.Object.Label+": "+self.Object.mode
 				),
 			app.modDialog)
+
 
 	def edit2(self):
 		self.hidden=True
 		self.createDialog()
 		self.edit()
+		dockit()
 
 
 	def setupContextMenu(self, obj, menu):
@@ -1647,6 +1707,7 @@ class _ViewProviderCV(Animation._ViewProviderActor):
 		if self.hidden:
 			self.createDialog()
 			self.edit()
+			dockit()
 			self.hidden=False
 		FreeCAD.ActiveDocument.recompute()
 		return True
