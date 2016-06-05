@@ -18,11 +18,17 @@
 #
 #
 
+import FreeCAD, Draft
+import FreeCADGui
+Gui=FreeCADGui
+App=FreeCAD
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
 
-hh=10
+# hh=10
 
 
 # test data
@@ -139,12 +145,13 @@ def text2coordList(datatext):
 			words=l.split()
 			try:
 				[xv,yv,zv]=[float(words[0]),float(words[1]),float(words[2])]
-				print xv+yv+zv
+#				print xv+yv+zv
 				x.append(xv)
 				y.append(yv)
 				z.append(10*zv)
 			except:
 				print "Fehler in Zeile ",zn
+
 	x=np.array(x)
 	y=np.array(y)
 	z=np.array(z)
@@ -185,14 +192,10 @@ def coordLists2points(x,y,z):
 #   p= coordLists2points(x,y,z)
 
 
-x,y,z= text2coordList(datatext)
-p= coordLists2points(x,y,z)
-# Points.show(p)
 
 
 
-
-def interpolate(x,y,z, gridsize):
+def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True):
 
 ##	x=np.array(x)
 ##	y=np.array(y)
@@ -207,43 +210,37 @@ def interpolate(x,y,z, gridsize):
 	
 	xi, yi = np.linspace(0, np.max(x)-np.min(x), grids), np.linspace(0, np.max(y)-np.min(y), grids)
 
+
 	xi, yi = np.meshgrid(xi, yi)
 
-	# Interpolate rbf
-#	rbf = scipy.interpolate.Rbf(x, y, z, function='linear')
-#	rbf = scipy.interpolate.Rbf(x, y, z, function='cubic')
-	rbf = scipy.interpolate.Rbf(x, y, z, function='thin_plate')
-#	rbf = scipy.interpolate.Rbf(x, y, z, function='multiquadradic')
-#	rbf = scipy.interpolate.Rbf(x, y, z, function='gaussian')
+	if rbfmode:
+		
+		rbf = scipy.interpolate.Rbf(x, y, z, function=mode)
+	else:
+		print "huhu"
+		
+		rbf = scipy.interpolate.interp2d(x, y, z, kind=mode)
 
-
-	# interpolate 2d
- 	# rbf = scipy.interpolate.interp2d(x, y, z, kind='cubic')
- 	# rbf = scipy.interpolate.interp2d(x, y, z)
+	# rbf = scipy.interpolate.interp2d(x, y, z)
 	zi = rbf(xi, yi)
 	# zi ist grids * grids
 	return xi,yi,zi
 
 
-gridsize=19
-xi,yi,zi = interpolate(x,y,z, gridsize)
 
 
-def showFace(xi,yi,zi,gridsize):
+def showFace(xi,yi,zi,gridsize,shapeColor):
 
 	import Draft
 	grids=gridsize
 
-	print zi
-	print zi.shape
-	print "haha"
 	lx,ly=zi.shape
 	ws=[]
 
 	for ix in range(lx):
 		points=[]
 		for iy in range(ly):
-			print ix,iy, "huhu"
+#			print ix,iy, "huhu"
 			points.append(FreeCAD.Vector(0.5*ix,0.5*iy,1*zi[ix,iy]))
 
 		w=Draft.makeWire(points,closed=False,face=False,support=None)
@@ -255,7 +252,7 @@ def showFace(xi,yi,zi,gridsize):
 	ll=FreeCAD.activeDocument().addObject('Part::Loft','elevation')
 	ll.Sections=ws
 	ll.Ruled = True
-	ll.ViewObject.ShapeColor = (0.00,0.67,0.00)
+	ll.ViewObject.ShapeColor = shapeColor
 	ll.ViewObject.LineColor = (0.00,0.67,0.00)
 	for w in ws:
 		w.ViewObject.Visibility=False
@@ -263,21 +260,20 @@ def showFace(xi,yi,zi,gridsize):
 
 
 	##lc=Draft.clone(ll)
-##	ll.ViewObject.Visibility=False
+##	ll.ViewObject.Visibility=False 
 	ll.Label="Interpolation Gitter " + str(grids)
 ##y	lc.Scale=(0.95,0.95,1.0)
 #n	lc.Scale=(0.92,0.92,1.0)
 
-	FreeCAD.activeDocument().recompute()
-	FreeCADGui.updateGui()
-	Gui.SendMsgToActiveView("ViewFit")
+
+#	App.ActiveDocument.addObject('Part::Feature','elevation').Shape=ll.Shape
+#	App.ActiveDocument.ActiveObject.Label=ll.Label +"!"
+
+	#FreeCAD.activeDocument().recompute()
+	#FreeCADGui.updateGui()
+	#Gui.SendMsgToActiveView("ViewFit")
 
 
-showFace(xi,yi,zi,gridsize)
-
-Points.show(p)
-pob=App.ActiveDocument.ActiveObject
-pob.ViewObject.PointSize = 10.00
 
 
 
@@ -285,9 +281,83 @@ def showHeightMap(x,y,z,zi):
 	''' show height map in maptplotlib '''
 	plt.imshow(zi, vmin=z.min(), vmax=z.max(), origin='lower',
 			   extent=[x.min(), x.max(), y.min(), y.max()])
-	plt.scatter(x, y, c=z)
 	plt.colorbar()
+
+	CS = plt.contour(zi,15,linewidths=0.5,colors='k',
+		extent=[x.min(), x.max(), y.min(), y.max()])
+	CS = plt.contourf(zi,15,cmap=plt.cm.rainbow, 
+			extent=[x.min(), x.max(), y.min(), y.max()])
+
+	plt.scatter(x, y, c=z)
+
 	plt.show()
 
 
-showHeightMap(x,y,z,zi)
+
+
+
+
+
+def createElevationGrid(mode,rbfmode=True):
+	
+	modeColor={
+	'linear' : ( 1.0, 0.3, 0.0),
+	'thin_plate' : (0.0, 1.0, 0.0),
+	'cubic' : (0.0, 1.0, 1.0),
+	'inverse' : (1.0, 1.0, 0.0),
+	'multiquadric' : (1.0, .0, 1.0),
+	'gaussian' : (1.0, 1.0, 1.0),
+	'quintic' :(0.5,1.0, 0.0)
+	}
+	
+	x,y,z= text2coordList(datatext)
+	p= coordLists2points(x,y,z)
+	# Points.show(p)
+
+
+	gridsize=19
+	xi,yi,zi = interpolate(x,y,z, gridsize,mode,rbfmode)
+
+	try: color=modeColor[mode]
+	except: color=(1.0,0.0,0.0)
+
+	showFace(xi,yi,zi,gridsize,color)
+
+	Points.show(p)
+	pob=App.ActiveDocument.ActiveObject
+	pob.ViewObject.PointSize = 10.00
+
+	print x.shape
+	print y.shape
+	print zi.shape
+	
+	showHeightMap(x,y,z,zi)
+	return [x,y,z,zi]
+
+
+
+if __name__ == '__main__':
+
+
+#	createElevationGrid('cubic',False)
+#	createElevationGrid('linear',False)
+#	createElevationGrid('quintic',False)
+	pass
+
+
+
+	createElevationGrid('thin_plate')
+
+if 0:
+	createElevationGrid('linear')
+	createElevationGrid('cubic')
+	createElevationGrid('inverse')
+	createElevationGrid('multiquadric')
+	createElevationGrid('gaussian')
+
+
+# radial basis function interpolator instance
+# http://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html
+
+
+

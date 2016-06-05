@@ -15,6 +15,7 @@ modes=[
 	'BlobDetector',
 	'ImageFile',
 	'Color','ColorSpace','CannyEdge',
+	'ElevationGrid',
 	'FatColor',
 	'GoodFeaturesToTrack',
 
@@ -196,6 +197,19 @@ configMode['HoughLinesPost'] = {
 			'p2w' : lambda x:x,
 			'w2p' : lambda x:x
 		},
+
+	]
+}
+
+
+
+configMode['ElevationGrid'] = {
+
+	'props': [
+		['model','App::PropertyEnumeration','Mixer',['linear','cubic']],
+	],
+
+	'widgets' : [ 
 
 	]
 }

@@ -411,6 +411,18 @@ HorizontalLayout:
 		plt.clf()
 
 		obj=self.obj
+		
+		if obj.mode == 'ElevationGrid':
+			say("elevatin grid")
+			say(obj)
+			say("plot to")
+			say(plt)
+			x=obj.Proxy.x
+			y=obj.Proxy.y
+			z=obj.Proxy.z
+			zi=obj.Proxy.zi
+			reconstruction.elevationgrid.showHeightMap(x,y,z,zi)
+			return
 
 		try:
 			if obj.mode == 'ImageFile':
@@ -743,6 +755,10 @@ HorizontalLayout:
 
 		self.updateDialog()
 
+		if self.obj.mode ==  'ElevationGrid' :
+			self.add_button("resetdata","Elevation Grid",lambda:run_elevationgrid(self.obj,self))
+			btsok=True
+
 		btsok=False
 		if self.obj.mode ==  'HoughLinesPost' :
 			self.add_button("resetdata","HoughLines Post processing",lambda:tools.run_HoughLinesPost(self.obj,self))
@@ -790,6 +806,22 @@ HorizontalLayout:
 			self.root.ids['main'].layout.setStretchFactor(self.mpl, 1)
 		except: pass
 		self.plot2()
+
+def run_elevationgrid(obj=None,app=None):
+
+	import reconstruction.elevationgrid
+	reload(reconstruction.elevationgrid)
+	say(obj.Label)
+	say(obj)
+	say(app)
+	[x,y,z,zi]=reconstruction.elevationgrid.createElevationGrid('thin_plate')
+
+	if obj:
+		obj.Proxy.x=x
+		obj.Proxy.y=y
+		obj.Proxy.z=z
+		obj.Proxy.zi=zi
+
 
 def run_pathfinder (obj,app):
 	''' find pathes(connected pointsets) in an image'''
@@ -1337,6 +1369,10 @@ def execute_Mask(proxy,obj):
 	obj.Proxy.img=img
 
 
+def execute_ElevationGrid(proxy,obj):
+	say("no exe l2vation grid")
+	# run_elevationgrid(obj,None)
+	say("done")
 
 
 def execute_HSV(proxy,obj):
