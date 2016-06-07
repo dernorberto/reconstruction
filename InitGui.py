@@ -200,25 +200,97 @@ class makeCV_master:
 			'ToolTip': self.tooltip
 		}
 
-cvCmds=[]
 
 def createcmd(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
 	global makeCV_master
 	FreeCADGui.addCommand(cmd, makeCV_master(cmd,pixmap,menutext,tooltip))
 	cvCmds.append(cmd)
 
+#----------------------------------------------------------------
+
+def runme2(s):
+	import reconstruction.CV2
+	reload(reconstruction.CV2)
+	t2=reconstruction.CV2.createCV('ElevationGrid')
+	return t2
+
+
+import reconstruction
+import reconstruction.configuration
+
+
+class makeCV_master2:
+
+	global runme2
+	global reconstruction
+
+	def __init__(self,classname='CV'):
+		self.classname=classname
+
+	def xxx(): # ignore
+		self.pixmap=pixmap
+		if menutext==None:
+			self.menutext="create " + self.classname
+		else:
+			self.menutext=menutext
+		if tooltip==None: 
+			self.tooltip="create a new " + self.classname
+		else:
+			self.tooltip=tooltip
+
+
+	def Activated(self):
+		s="reconstruction." + self.classname
+		print "run import ..." + s
+		t=runme2(s)
+		print t.Label
+		print  s + " done, okay"
+
+	def GetResources(self):
+		try:
+			reconstruction.configuration.configMode[self.classname]['MenuText']
+			return reconstruction.configuration.configMode[self.classname]
+		except:
+			return {
+			'Pixmap'  : 'Std_Tool2',  
+			'MenuText': self.classname, 
+			'ToolTip': "self.tooltip"
+			}
+
+
+
+
+def createcmd2(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
+	global makeCV_master2
+	print("huhu",cmd)
+	try:
+		FreeCADGui.addCommand(cmd, makeCV_master2(cmd))
+		cvCmds.append(cmd)
+	except:
+		pass
+
+
 #----------------------------------------
 
+cvCmds=[]
 
+if 0:
+	#createcmd('CV','Std_Tool2','cv base','cv tipp2')
+	#createcmd('CV_demo','Std_Tool3','demo ','demo tipp2')
+	createcmd('CV_cornerharris','Std_Tool1','corner Harris','corner Harris')
+	createcmd('CV_canny','Std_Tool2','edge Canny','edge Canny')
+	createcmd('CV_opening','Std_Tool3','opening','opening')
+	createcmd('CV_closing','Std_Tool3','closing','closing')
+	createcmd('CV_combiner','Std_Tool1','combiner','combiner')
 
-#createcmd('CV','Std_Tool2','cv base','cv tipp2')
-#createcmd('CV_demo','Std_Tool3','demo ','demo tipp2')
-createcmd('CV_cornerharris','Std_Tool1','corner Harris','corner Harris')
-createcmd('CV_canny','Std_Tool2','edge Canny','edge Canny')
-createcmd('CV_opening','Std_Tool3','opening','opening')
-createcmd('CV_closing','Std_Tool3','closing','closing')
-createcmd('CV_combiner','Std_Tool1','combiner','combiner')
+#-----------------------------------------
 
+#
+# neue version
+#
+
+for m in reconstruction.configuration.modes:
+	createcmd2(m)
 
 #------------------------------------------
 

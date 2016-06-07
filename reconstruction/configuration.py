@@ -211,8 +211,12 @@ configMode['ElevationGrid'] = {
 		['maxHeight','App::PropertyInteger','HSV',100],
 		['showMap','App::PropertyBool','HSV',False],
 		['gridCount','App::PropertyInteger','HSV',20],
-
 	],
+
+	'ToolTip':'create an elevation grip for the vertexes of a part or a point cloud',
+	'MenuText': 'Elevation Grid',
+	'Pixmap'  : 'Std_Tool3', 
+
 
 	'widgets' : [ 
 
