@@ -82,12 +82,13 @@ def getMainWindowByName(name,separateMainWindow):
 		if name == i.windowTitle():
 			i.show()
 			return i
-		
+
 	r=QtGui.QMainWindow()
 	r.setWindowTitle(name)
 	FreeCAD.r=r
 	r.show()
 	r.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	r.show()
 	return r
 
 
@@ -412,17 +413,6 @@ HorizontalLayout:
 
 		obj=self.obj
 		
-		if obj.mode == 'ElevationGrid':
-			say("elevatin grid")
-			say(obj)
-			say("plot to")
-			say(plt)
-			x=obj.Proxy.x
-			y=obj.Proxy.y
-			z=obj.Proxy.z
-			zi=obj.Proxy.zi
-			reconstruction.elevationgrid.showHeightMap(x,y,z,zi)
-			return
 
 		try:
 			if obj.mode == 'ImageFile':
@@ -441,6 +431,37 @@ HorizontalLayout:
 				except: img=None
 		except:
 			sayexc()
+
+		say(obj.mode)
+		if obj.mode == 'ElevationGrid':
+			try: x=obj.Proxy.x
+			except: return
+
+			x=obj.Proxy.x
+			y=obj.Proxy.y
+			z=obj.Proxy.z
+			zi=obj.Proxy.zi
+			if obj.showMap:
+				reconstruction.elevationgrid.showHeightMap(x,y,z,zi)
+
+			jmin=np.min(zi)
+			jmax=np.max(zi)
+
+			k=zi>=jmin+ obj.minHeight*(jmax-jmin)/100
+			z2=zi*k
+
+			k=zi<=jmin+obj.maxHeight*(jmax-jmin)/100
+			z2=z2*k
+
+			u2=np.round((z2-jmin)*255/(jmax-jmin))
+			u3=u2.astype(np.uint8)
+
+			img=cv2.applyColorMap(u3,cv2.COLORMAP_JET)
+			img=cv2.flip(img,1)
+			img=cv2.transpose(img)
+			# cv2.imshow("elevation test",img)
+			obj.Proxy.img=img
+
 
 
 		if img == None:
@@ -528,10 +549,19 @@ HorizontalLayout:
 
 	def add_button(self,idname,label,method):
 		bt=QtGui.QPushButton(label)
+		bt.clicked.connect(lambda:sayErr("button "+ label +" clicked 1"))
 		if method <>None:
-			bt.clicked.connect(method)
+			if method.__class__.__name__ == "str":
+				obj=self.obj
+				gui=self
+				m=eval(method)
+				bt.clicked.connect(lambda:m(obj,gui))
+			else:
+				bt.clicked.connect(method)
 		else:
 			bt.clicked.connect(lambda:sayErr("button "+ label +" clicked"))
+
+		bt.clicked.connect(lambda:sayErr("button "+ label +" clicked 2"))
 		self.root.ids[idname]=bt
 		self.root.ids['main'].layout.addWidget(bt)
 
@@ -675,7 +705,7 @@ HorizontalLayout:
 		l.addWidget(dial)
 
 
-	def add_widget(self,idname,widgetclassname,p2w,w2p):
+	def add_widget(self,idname,widgetclassname,p2w,w2p,action):
 		### x=self.obj.getPropertyByName(idname)
 		f=lambda ww: setattr(self.obj,idname,p2w(ww))
 		if widgetclassname=='dialer2':
@@ -691,8 +721,11 @@ HorizontalLayout:
 		if widgetclassname=='checkBox':
 			self.add_checkBox(idname,widgetclassname +  " xx for "  +  idname ,f)
 		if widgetclassname=='button':
-			f=None
-			self.add_button(idname,idname ,f)
+			#try: f=self.obj.action
+			#except: f=None
+			sayErr("erzeugen button")
+			sayErr(action)
+			self.add_button(idname,idname ,action)
 
 
 	def updateDialog(self):
@@ -737,7 +770,7 @@ HorizontalLayout:
 		self.root.ids['vela'].hide()
 
 	def snapshot(self):
-		Gui.activeDocument().activeView().saveImage('/home/thomas/Schreibtisch/screen.png',563,442,'Current')
+		Gui.activeDocument().activeView().saveImage('/tmp/screen.png',563,442,'Current')
 		self.obj.touch()
 		FreeCAD.ActiveDocument.recompute()
 
@@ -751,13 +784,17 @@ HorizontalLayout:
 		except: sayexc("modDialog Mode no mode " + self.obj.mode)
 
 		for w in config.configMode[self.obj.mode]['widgets']:
-			self.add_widget(w['id'],w['params'][0],w['p2w'],w['w2p'])
+			try: action=w['action']
+			except: action=None
+			try: p2w=w['p2w']
+			except: p2w=lambda x:x
+			try: w2p=w['w2p']
+			except: w2p=lambda x:x
+
+			self.add_widget(w['id'],w['params'][0],p2w,w2p,action)
 
 		self.updateDialog()
 
-		if self.obj.mode ==  'ElevationGrid' :
-			self.add_button("resetdata","Elevation Grid",lambda:run_elevationgrid(self.obj,self))
-			btsok=True
 
 		btsok=False
 		if self.obj.mode ==  'HoughLinesPost' :
@@ -807,14 +844,27 @@ HorizontalLayout:
 		except: pass
 		self.plot2()
 
+def run_myaction(obj=None,gui=None):
+	''' example action from buttom called
+	first arg: the cad object
+	2nd arg: the gui-app with the named widgets gui.root.ids
+	'''
+	say("run my action")
+	try:
+		say(obj)
+		say(obj.Label)
+		say(gui)
+		say(gui.root.ids)
+	except:
+		sayexc()
+
+
 def run_elevationgrid(obj=None,app=None):
 
 	import reconstruction.elevationgrid
 	reload(reconstruction.elevationgrid)
-	say(obj.Label)
-	say(obj)
-	say(app)
-	[x,y,z,zi]=reconstruction.elevationgrid.createElevationGrid('thin_plate')
+	[rbf,x,y,z,zi]=reconstruction.elevationgrid.createElevationGrid('cubic',True,obj.sourceObject,obj.gridCount+1)
+	FreeCAD.ActiveDocument.recompute()
 
 	if obj:
 		obj.Proxy.x=x
@@ -839,8 +889,6 @@ def run_pathfinder (obj,app):
 	pl2=pf.run(obj.minPathPoints,obj.showPics,obj)
 	obj.Proxy.pl2=pl2
 	obj.Proxy.img=pf.imgOut
-
-	say("done/found")
 
 
 def run_pathanalyzer(obj,app=None,forcereload=True,createFC=False):
@@ -1370,9 +1418,8 @@ def execute_Mask(proxy,obj):
 
 
 def execute_ElevationGrid(proxy,obj):
-	say("no exe l2vation grid")
-	# run_elevationgrid(obj,None)
-	say("done")
+	# execute run_elevationgrid by a buttonclick
+	pass
 
 
 def execute_HSV(proxy,obj):

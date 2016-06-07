@@ -603,6 +603,7 @@ class MyDockWidget(QtGui.QDockWidget):
 		self.ll=layout
 		self.centralWidget.setLayout(layout)
 		self.scroll=QtGui.QScrollArea()
+
 		self.liste=QtGui.QWidget()
 		self.lilayout=QtGui.QVBoxLayout()
 		self.liste.setLayout(self.lilayout)
@@ -623,12 +624,15 @@ class MyDockWidget(QtGui.QDockWidget):
 		scroll.setWidgetResizable(True)
 		self.lilayout.addWidget(scroll)
 
-		self.pushButton00 = QtGui.QPushButton(QtGui.QIcon('icons:freecad.svg'),objectname)
+		# optionaler Top button
+		if 0:
+			self.pushButton00 = QtGui.QPushButton(QtGui.QIcon('icons:freecad.svg'),objectname)
+			layout.addWidget(self.pushButton00)
+
 		self.pushButton01 = QtGui.QPushButton(
 			QtGui.QIcon(FreeCAD.ConfigGet('UserAppData')+'/Mod/mylib/icons/mars.png'),"Mars" )
 		#self.pushButton01.clicked.connect(self.start)
 
-		layout.addWidget(self.pushButton00)
 #		layout.addWidget(self.liste)
 #		layout.addWidget(self.pushButton01)
 
@@ -636,8 +640,10 @@ class MyDockWidget(QtGui.QDockWidget):
 		dwl = QtGui.QHBoxLayout()
 		dw.setLayout(dwl)
 		self.dwl=dwl
-		
-		layout.addWidget(dw)
+
+
+		if False: # Top level Icon leiste optional sichtbar machen
+			layout.addWidget(dw)
 		#self.setTitleBarWidget(dw)
 		
 		l=QtGui.QLabel('Label')

@@ -1,5 +1,5 @@
 #: utf-8 -*-
-#-------------------------------------------------
+# ------------------------------------------
 #-- reconstruction workbench
 #--
 #-- microelly 2016 v 0.1
@@ -27,8 +27,7 @@ App=FreeCAD
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
-
-# hh=10
+import Points
 
 
 # test data
@@ -135,7 +134,6 @@ datatext='''1 1 1
 '''
 
 
-import Points
 
 def text2coordList(datatext):
 	x=[]; y=[]; z=[]
@@ -197,52 +195,50 @@ def coordLists2points(x,y,z):
 
 def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True):
 
-##	x=np.array(x)
-##	y=np.array(y)
-##	z=np.array(z)
-
-	# Set up a regular grid of interpolation points
-##	grids=50 # 100  0.93
-##	grids=100 # 100  
-##	
-##	grids=20
 	grids=gridsize
-	
-	xi, yi = np.linspace(0, np.max(x)-np.min(x), grids), np.linspace(0, np.max(y)-np.min(y), grids)
 
+	dx=np.max(x)-np.min(x)
+	dy=np.max(y)-np.min(y)
 
+	if dx>dy:
+		gridx=grids
+		gridy=int(round(dy/dx*grids))
+	else:
+		gridy=grids
+		gridx=int(round(dx/dy*grids))
+
+	xi, yi = np.linspace(np.min(x), np.max(x), gridx), np.linspace(np.min(y), np.max(y), gridy)
 	xi, yi = np.meshgrid(xi, yi)
 
 	if rbfmode:
-		
 		rbf = scipy.interpolate.Rbf(x, y, z, function=mode)
+		rbf2 = scipy.interpolate.Rbf( y,x, z, function=mode)
 	else:
-		print "huhu"
-		
+		print "interp2d nicht implementiert"
 		rbf = scipy.interpolate.interp2d(x, y, z, kind=mode)
 
-	# rbf = scipy.interpolate.interp2d(x, y, z)
-	zi = rbf(xi, yi)
-	# zi ist grids * grids
-	return xi,yi,zi
+	zi=rbf2(yi,xi)
+	return [rbf,xi,yi,zi]
 
 
 
 
-def showFace(xi,yi,zi,gridsize,shapeColor):
+def showFace(rbf,x,y,gridsize,shapeColor):
 
 	import Draft
 	grids=gridsize
 
-	lx,ly=zi.shape
 	ws=[]
 
-	for ix in range(lx):
-		points=[]
-		for iy in range(ly):
-#			print ix,iy, "huhu"
-			points.append(FreeCAD.Vector(0.5*ix,0.5*iy,1*zi[ix,iy]))
 
+	xi, yi = np.linspace(np.min(x), np.max(x), grids), np.linspace(np.min(y), np.max(y), grids)
+
+	for ix in xi:
+		points=[]
+		for iy in yi:
+#			print (ix,iy, rbf(ix,iy))
+			iz=float(rbf(ix,iy))
+			points.append(FreeCAD.Vector(iy,ix,iz))
 		w=Draft.makeWire(points,closed=False,face=False,support=None)
 		ws.append(w)
 #-		FreeCAD.activeDocument().recompute()
@@ -254,43 +250,38 @@ def showFace(xi,yi,zi,gridsize,shapeColor):
 	ll.Ruled = True
 	ll.ViewObject.ShapeColor = shapeColor
 	ll.ViewObject.LineColor = (0.00,0.67,0.00)
+
 	for w in ws:
 		w.ViewObject.Visibility=False
-	# ll.Placement.Base=FreeCAD.Vector(10.0*grids/100,10.0*grids/100,0)
 
-
-	##lc=Draft.clone(ll)
-##	ll.ViewObject.Visibility=False 
 	ll.Label="Interpolation Gitter " + str(grids)
-##y	lc.Scale=(0.95,0.95,1.0)
-#n	lc.Scale=(0.92,0.92,1.0)
-
-
-#	App.ActiveDocument.addObject('Part::Feature','elevation').Shape=ll.Shape
-#	App.ActiveDocument.ActiveObject.Label=ll.Label +"!"
-
-	#FreeCAD.activeDocument().recompute()
-	#FreeCADGui.updateGui()
-	#Gui.SendMsgToActiveView("ViewFit")
-
 
 
 
 
 def showHeightMap(x,y,z,zi):
 	''' show height map in maptplotlib '''
+	zi=zi.transpose()
+
 	plt.imshow(zi, vmin=z.min(), vmax=z.max(), origin='lower',
-			   extent=[x.min(), x.max(), y.min(), y.max()])
+			   extent=[ y.min(), y.max(),x.min(), x.max()])
+
 	plt.colorbar()
 
 	CS = plt.contour(zi,15,linewidths=0.5,colors='k',
-		extent=[x.min(), x.max(), y.min(), y.max()])
+			   extent=[ y.min(), y.max(),x.min(), x.max()])
 	CS = plt.contourf(zi,15,cmap=plt.cm.rainbow, 
-			extent=[x.min(), x.max(), y.min(), y.max()])
+			   extent=[ y.min(), y.max(),x.min(), x.max()])
 
-	plt.scatter(x, y, c=z)
+	z=z.transpose()
+	plt.scatter(y, x, c=z)
+
+	# achsen umkehren
+	#plt.gca().invert_xaxis()
+	#plt.gca().invert_yaxis()
 
 	plt.show()
+	return
 
 
 
@@ -298,7 +289,9 @@ def showHeightMap(x,y,z,zi):
 
 
 
-def createElevationGrid(mode,rbfmode=True):
+
+
+def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 	
 	modeColor={
 	'linear' : ( 1.0, 0.3, 0.0),
@@ -309,55 +302,69 @@ def createElevationGrid(mode,rbfmode=True):
 	'gaussian' : (1.0, 1.0, 1.0),
 	'quintic' :(0.5,1.0, 0.0)
 	}
-	
-	x,y,z= text2coordList(datatext)
-	p= coordLists2points(x,y,z)
-	# Points.show(p)
 
+	if source<>None:
 
-	gridsize=19
-	xi,yi,zi = interpolate(x,y,z, gridsize,mode,rbfmode)
+		if hasattr(source,"Shape"):
+			# part object
+			pts=[v.Point for v in  source.Shape.Vertexes]
+
+			p=Points.Points(pts)
+			Points.show(p)
+			pob=App.ActiveDocument.ActiveObject
+			pob.ViewObject.PointSize = 10.00
+			pob.ViewObject.ShapeColor=(1.0,0.0,0.0)
+
+		elif hasattr(source,"Points"):
+			# point cloud
+			pts=source.Points.Points
+		else:
+			raise Exception("don't know to get points")
+
+		x=[v[1] for v in pts]
+		y=[v[0] for v in pts]
+		z=[v[2] for v in pts]
+
+	else:
+		# testdata
+		x,y,z= text2coordList(datatext)
+		p= coordLists2points(x,y,z)
+
+	x=np.array(x)
+	y=np.array(y)
+	z=np.array(z)
+
+	gridsize=gridCount
+
+	rbf,xi,yi,zi = interpolate(x,y,z, gridsize,mode,rbfmode)
 
 	try: color=modeColor[mode]
 	except: color=(1.0,0.0,0.0)
 
-	showFace(xi,yi,zi,gridsize,color)
+	xmin=np.min(x)
+	ymin=np.min(y)
 
-	Points.show(p)
-	pob=App.ActiveDocument.ActiveObject
-	pob.ViewObject.PointSize = 10.00
-
-	print x.shape
-	print y.shape
-	print zi.shape
-	
+	showFace(rbf,x,y,gridsize,color)
 	showHeightMap(x,y,z,zi)
-	return [x,y,z,zi]
 
+	# interpolation for image
+	gridsize=400
+	rbf,xi,yi,zi = interpolate(x,y,z, gridsize,mode,rbfmode)
+	return [rbf,x,y,z,zi]
 
 
 if __name__ == '__main__':
 
-
-#	createElevationGrid('cubic',False)
-#	createElevationGrid('linear',False)
-#	createElevationGrid('quintic',False)
-	pass
-
-
-
 	createElevationGrid('thin_plate')
-
-if 0:
 	createElevationGrid('linear')
-	createElevationGrid('cubic')
 	createElevationGrid('inverse')
 	createElevationGrid('multiquadric')
 	createElevationGrid('gaussian')
-
+	App.activeDocument().recompute()
 
 # radial basis function interpolator instance
 # http://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html
+
 
 
 

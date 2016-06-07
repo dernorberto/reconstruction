@@ -206,10 +206,44 @@ configMode['HoughLinesPost'] = {
 configMode['ElevationGrid'] = {
 
 	'props': [
-		['model','App::PropertyEnumeration','Mixer',['linear','cubic']],
+		['model','App::PropertyEnumeration','Mixer',['thin_plate','linear','cubic','inverse','multiquadric','gaussian']],
+		['minHeight','App::PropertyInteger','HSV',0],
+		['maxHeight','App::PropertyInteger','HSV',100],
+		['showMap','App::PropertyBool','HSV',False],
+		['gridCount','App::PropertyInteger','HSV',20],
+
 	],
 
 	'widgets' : [ 
+
+		{
+			'id':'minHeight', 
+			'params' : ['dialer',0,100],
+		},
+		{
+			'id':'maxHeight', 
+			'params' : ['dialer',0,100],
+		},
+
+		{
+			'id':'gridCount', 
+			'params' : ['dialernr',4,40],
+		},
+
+
+		{
+			'id':'xyz', 
+			'params' : ['button'],
+			'action' : 'run_myaction'
+		},
+
+		{
+			'id':'create Elevation Grid', 
+			'params' : ['button'],
+			'action' : 'run_elevationgrid'
+		},
+
+
 
 	]
 }
