@@ -211,7 +211,7 @@ def createcmd(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
 def runme2(s):
 	import reconstruction.CV2
 	reload(reconstruction.CV2)
-	t2=reconstruction.CV2.createCV('ElevationGrid')
+	t2=reconstruction.CV2.createCV(s)
 	return t2
 
 
@@ -242,7 +242,7 @@ class makeCV_master2:
 	def Activated(self):
 		s="reconstruction." + self.classname
 		print "run import ..." + s
-		t=runme2(s)
+		t=runme2(self.classname)
 		print t.Label
 		print  s + " done, okay"
 
@@ -309,7 +309,7 @@ class Reconstruction ( Workbench ):
 		global cvCmds
 		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV"]
 		cmds += cvCmds
-		self.appendToolbar("Reconstruction", cmds )
+	##	self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)
 		Log ("Loading Reconstruction Workbench ... done\n")
 
