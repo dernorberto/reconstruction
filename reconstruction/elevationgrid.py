@@ -193,7 +193,7 @@ def coordLists2points(x,y,z):
 
 
 
-def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True):
+def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True,shape=None):
 
 	grids=gridsize
 
@@ -206,6 +206,9 @@ def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True):
 	else:
 		gridy=grids
 		gridx=int(round(dx/dy*grids))
+
+	if shape<>None:
+		(gridy,gridx)=shape
 
 	xi, yi = np.linspace(np.min(x), np.max(x), gridx), np.linspace(np.min(y), np.max(y), gridy)
 	xi, yi = np.meshgrid(xi, yi)
@@ -223,7 +226,7 @@ def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True):
 
 
 
-def showFace(rbf,x,y,gridsize,shapeColor):
+def showFace(rbf,rbf2,x,y,gridsize,shapeColor):
 
 	import Draft
 	grids=gridsize
@@ -238,6 +241,9 @@ def showFace(rbf,x,y,gridsize,shapeColor):
 		for iy in yi:
 #			print (ix,iy, rbf(ix,iy))
 			iz=float(rbf(ix,iy))
+#			if rbf2<>None:
+#				iz -= float(rbf2(ix,iy))
+
 			points.append(FreeCAD.Vector(iy,ix,iz))
 		w=Draft.makeWire(points,closed=False,face=False,support=None)
 		ws.append(w)
@@ -336,7 +342,20 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 
 	gridsize=gridCount
 
-	rbf,xi,yi,zi = interpolate(x,y,z, gridsize,mode,rbfmode)
+	rbf,xi,yi,zi1 = interpolate(x,y,z, gridsize,mode,rbfmode)
+	
+	# hilfsebene
+	xe=[100,-100,100,-100]
+	ye=[100,100,-100,-100]
+	ze=[20,10,20,5]
+
+	rbf2,xi2,yi2,zi2 = interpolate(xe,ye,ze, gridsize,mode,rbfmode,zi1.shape)
+	
+	#print zi1.shape
+	#print zi2.shape
+	
+	#zi=zi1-zi2
+	zi=zi1
 
 	try: color=modeColor[mode]
 	except: color=(1.0,0.0,0.0)
@@ -344,13 +363,15 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 	xmin=np.min(x)
 	ymin=np.min(y)
 
-	showFace(rbf,x,y,gridsize,color)
+	showFace(rbf,rbf2,x,y,gridsize,color)
+	
 	showHeightMap(x,y,z,zi)
 
 	# interpolation for image
 	gridsize=400
 	rbf,xi,yi,zi = interpolate(x,y,z, gridsize,mode,rbfmode)
-	return [rbf,x,y,z,zi]
+	rbf2,xi2,yi2,zi2 = interpolate(xe,ye,ze, gridsize,mode,rbfmode,zi.shape)
+	return [rbf,rbf2,x,y,z,zi,zi2]
 
 
 if __name__ == '__main__':

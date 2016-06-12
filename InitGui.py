@@ -29,6 +29,25 @@ import FreeCAD, FreeCADGui
 
 windowCreated = 0
 
+class pointcloudComposer:
+
+	def Activated(self):
+		FreeCAD.Console.PrintMessage("run  ... ")
+		import reconstruction.pointcloud_composer
+		reload(reconstruction.pointcloud_composer)
+		print "okay"
+		reconstruction.pointcloud_composer.run()
+
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : 'Std_Tool1', 
+			'MenuText': 'Point Cloud Composer', 
+			'ToolTip': ''
+		}
+
+FreeCADGui.addCommand('Point Cloud Composer', pointcloudComposer())
+
 
 class mydialog:
 
@@ -307,7 +326,7 @@ class Reconstruction ( Workbench ):
 
 	def Initialize(self):
 		global cvCmds
-		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV"]
+		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV",'Point Cloud Composer']
 		cmds += cvCmds
 	##	self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)

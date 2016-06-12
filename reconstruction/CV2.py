@@ -863,7 +863,7 @@ def run_elevationgrid(obj=None,app=None):
 
 	import reconstruction.elevationgrid
 	reload(reconstruction.elevationgrid)
-	[rbf,x,y,z,zi]=reconstruction.elevationgrid.createElevationGrid('cubic',True,obj.sourceObject,obj.gridCount+1)
+	[rbf,rbf2,x,y,z,zi,zi2]=reconstruction.elevationgrid.createElevationGrid('cubic',True,obj.sourceObject,obj.gridCount+1)
 	FreeCAD.ActiveDocument.recompute()
 
 	if obj:
@@ -871,6 +871,9 @@ def run_elevationgrid(obj=None,app=None):
 		obj.Proxy.y=y
 		obj.Proxy.z=z
 		obj.Proxy.zi=zi
+		obj.Proxy.zi2=zi2
+		obj.Proxy.rbf=rbf
+		obj.Proxy.rbf2=rbf2
 
 
 def run_pathfinder (obj,app):
