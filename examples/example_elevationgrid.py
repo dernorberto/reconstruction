@@ -24,7 +24,11 @@ t2=reconstruction.CV2.createCV('ElevationGrid')
 t2.sourceObject=App.ActiveDocument.Fusion
 
 FreeCAD.ActiveDocument.recompute()
+
 reconstruction.CV2.run_elevationgrid(t2,None)
+
+
+
 
 
 

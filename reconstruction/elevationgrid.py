@@ -153,8 +153,8 @@ def text2coordList(datatext):
 	x=np.array(x)
 	y=np.array(y)
 	z=np.array(z)
-	x=x-x.min()
-	y=y-y.min()
+	#x=x-x.min()
+	#y=y-y.min()
 
 	return (x,y,z)
 # x,y,z= text2coordList(datatext)
