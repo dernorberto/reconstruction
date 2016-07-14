@@ -36,6 +36,7 @@ class Nurbs(PartFeature):
 		obj.addProperty("App::PropertyInteger","nNodes_v","Nurbs","").nNodes_v=5
 		obj.addProperty("App::PropertyFloatList","knot_u","Nurbs","").knot_u=[0,0,0,0.33,0.67,1,1,1]
 		obj.addProperty("App::PropertyFloatList","knot_v","Nurbs","").knot_v=[0,0,0,0.33,0.67,1,1,1]
+		obj.addProperty("App::PropertyFloatList","weights","Nurbs","")
 
 
 		obj.addProperty("App::PropertyFloat","Height","Nurbs", "Height of the Nurbs").Height=1.0
@@ -82,6 +83,12 @@ class Nurbs(PartFeature):
 		obj.knot_v=[0,0]+ l + [1,1]
 
 
+		weights=np.ones(uc*vc)
+		weights=weights.reshape(vc,uc)
+		weights[4]=10
+		weights[:][2]=10
+		obj.weights=list(np.ravel(weights))
+
 
 		knot_u=obj.knot_u
 		knot_v=obj.knot_v
@@ -100,8 +107,9 @@ class Nurbs(PartFeature):
 			for l in poles: cc += str(l)
 			coor=eval(cc)
 
-		val=coor[obj.polnumber]
-		coor[obj.polnumber]=[val[0],val[1],obj.Height]
+		#val=coor[obj.polnumber]
+		#coor[obj.polnumber]=[val[0],val[1],obj.Height]
+
 		obj.poles=str(coor)
 
 		bs=Part.BSplineSurface()
@@ -109,22 +117,24 @@ class Nurbs(PartFeature):
 		 
 		id=1
 		for i in range(0,len(knot_u)-1):
-				 if knot_u[i+1] > knot_u[i]:
+			#	 if knot_u[i+1] > knot_u[i]:
 						 bs.insertUKnot(knot_u[i],id,0.0000001)
 
 		id=1
 		for i in range(0,len(knot_v)-1):
-				 if knot_v[i+1] > knot_v[i]:
+			#	 if knot_v[i+1] > knot_v[i]:
 						 bs.insertVKnot(knot_v[i],id,0.0000001)
 
 		i=0
 		for jj in range(0,nNodes_v):
 			for ii in range(0,nNodes_u):
-				bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1);
+				# bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1);
+				bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1)
 				i=i+1;
 
 		s=bs.toShape()
 		obj.Shape=s
+		FreeCAD.bs=bs
 
 		#create the poles and surface helper for visualization
 		#the pole point cloud
@@ -200,6 +210,7 @@ class Nurbs(PartFeature):
 			self.grid=App.ActiveDocument.ActiveObject
 			self.grid.Label="Pole Grid"
 		App.activeDocument().recompute()
+		Gui.updateGui()
 		return comp
 
 
@@ -215,7 +226,90 @@ class Nurbs(PartFeature):
 		self.updatePoles()
 		self.showGriduv()
 
-	def addUline(self,vp):
+	def elevateUline(self,vp,height=40):
+
+		g=self.g
+		vc,uc,tt=self.g.shape
+
+		for i in range(uc):
+			g[vp][i][2]=height
+		self.g=g
+
+		self.updatePoles()
+		c=self.showGriduv()
+		return g
+
+
+	def elevateVline(self,vp,height=40):
+
+		g=self.g
+		vc,uc,tt=self.g.shape
+
+		for i in range(vc):
+			g[i][vp][2]=height
+		self.g=g
+
+		self.updatePoles()
+		c=self.showGriduv()
+		return g
+
+
+	def elevateRectangle(self,v,u,dv,du,height=50):
+
+		g=self.g
+		vc,uc,tt=self.g.shape
+
+		for iv in range(v,v+dv+1):
+			for iu in range(u,u+du+1):
+				g[iu][iv][2]=height
+		self.g=g
+
+		self.updatePoles()
+		c=self.showGriduv()
+		return g
+
+
+	def elevateCircle(self,u=20,v=30,radius=10,height=60):
+		
+		g=self.g
+		vc,uc,tt=self.g.shape
+
+		for iv in range(vc):
+			for iu in range(uc):
+				# if (iu-u)**2+(iv-v)**2 <= radius**2: 
+				if (g[iu][iv][0]-g[u][v][0])**2 + (g[iu][iv][1]-g[u][v][1])**2 <= radius**2: 
+					g[iu][iv][2]=height
+		self.g=g
+
+		self.updatePoles()
+		c=self.showGriduv()
+		return g
+
+	def createWaves(self,height=10,depth=-5):
+
+		g=self.g
+		vc,uc,tt=self.g.shape
+
+		for iv in range(vc):
+			for iu in range(uc):
+				if (iv+iu)%2 == 0:
+					g[iu][iv][2]=height
+				else:
+					g[iu][iv][2]=depth
+		self.g=g
+
+
+		self.updatePoles()
+		c=self.showGriduv()
+		return g
+
+
+
+	def addUline(self,vp,pos=0.5):
+
+		if pos<=0: pos=0.00001
+		if pos>=1: pos=1-0.00001
+		pos=1-pos
 
 		g=self.g
 		vc,uc,tt=self.g.shape
@@ -223,6 +317,11 @@ class Nurbs(PartFeature):
 		vline=[]
 		for i in range(uc):
 			vline.append([(g[vp-1][i][0]+g[vp][i][0])/2,(g[vp-1][i][1]+g[vp][i][1])/2,20] )# (g[vp-1][i][2]+g[vp][i][2])/2
+
+		vline=[]
+		for i in range(uc):
+			vline.append([(pos*g[vp-1][i][0]+(1-pos)*g[vp][i][0]),(pos*g[vp-1][i][1]+(1-pos)*g[vp][i][1]),20] )# (g[vp-1][i][2]+g[vp][i][2])/2
+
 
 		vline=np.array(vline)
 
@@ -238,8 +337,12 @@ class Nurbs(PartFeature):
 		return gg
 
 
-	def addVline(self,vp):
+	def addVline(self,vp,pos=0.5):
 
+		if pos<=0: pos=0.00001
+		if pos>=1: pos=1-0.00001
+		pos=1-pos
+		
 		g=self.g
 		vc,uc,tt=self.g.shape
 		print "add V line"
@@ -249,6 +352,10 @@ class Nurbs(PartFeature):
 		vline=[]
 		for i in range(vc):
 			vline.append([(g[vp-1][i][0]+g[vp][i][0])/2,(g[vp-1][i][1]+g[vp][i][1])/2,20] )# (g[vp-1][i][2]+g[vp][i][2])/2
+
+		vline=[]
+		for i in range(vc):
+			vline.append([(pos*g[vp-1][i][0]+(1-pos)*g[vp][i][0]),(pos*g[vp-1][i][1]+(1-pos)*g[vp][i][1]),20] )# (g[vp-1][i][2]+g[vp][i][2])/2
 
 		vline=np.array(vline)
 
@@ -384,7 +491,7 @@ def makeNurbs():
 	return a
 
 
-if 1:
+if 0:
 
 	coorstring='''[[0,0,1],[1,0,1],[2,0,1],[3,0,1],[4,0,1],
 [0,1,1],[1,1,0],[2,1,2],[3,1,1],[4,1,1],
@@ -409,13 +516,21 @@ if 1:
 		print a.Proxy.g
 		
 		a.Proxy.showGriduv()
+
+
+
+	uc=20
+	vc=20
 	
-
-
-	uc=6
-	vc=10
+	#uc=5
+	#vc=5
 
 	a=makeNurbs()
+
+	App.ActiveDocument.Nurbs.ViewObject.ShapeColor=(0.00,1.00,1.00)
+	App.ActiveDocument.Nurbs.ViewObject.Transparency = 70
+
+
 	a.nNodes_u=uc
 	a.nNodes_v=vc
 
@@ -480,14 +595,43 @@ if 1:
 
 	#a.Proxy.showGriduv()
 
-	a.Proxy.movePoint(1,1,0,0,15)
-	a.Proxy.movePoint(3,4,0,0,-30)
+	if 0:
+		a.Proxy.movePoint(1,1,0,0,40)
+		a.Proxy.movePoint(4,6,0,0,60)
+		a.Proxy.movePoint(2,5,0,0,60)
 
-	print "add Uline"
-	a.Proxy.addUline(1)
+		print "add Uline"
+		a.Proxy.addUline(8)
+		a.Proxy.addUline(8)
+		a.Proxy.addUline(8)
 
-	a.Proxy.addVline(3)
-	a.Proxy.addVline(4)
+		a.Proxy.addUline(4)
 
-	App.ActiveDocument.Nurbs.ViewObject.ShapeColor=(0.00,1.00,1.00)
-	App.ActiveDocument.Nurbs.ViewObject.Transparency = 70
+		a.Proxy.addUline(3,0.4)
+		a.Proxy.addUline(3,0.7)
+
+		a.Proxy.addUline(2,0.1)
+		a.Proxy.addUline(2,0.1)
+
+
+		a.Proxy.addVline(4,0)
+		a.Proxy.addVline(4,0)
+
+		a.Proxy.addVline(3,1)
+		a.Proxy.addVline(3,1)
+		
+
+		a.Proxy.addVline(2,0.33)
+		a.Proxy.addVline(1,0.67)
+
+
+		a.Proxy.elevateUline(4)
+		a.Proxy.elevateUline(6,-30)
+
+		a.Proxy.elevateVline(3)
+		a.Proxy.elevateUline(2,-30)
+
+	# raender hochziehen
+
+
+
