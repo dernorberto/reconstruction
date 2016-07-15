@@ -281,7 +281,6 @@ class makeCV_master2:
 
 def createcmd2(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
 	global makeCV_master2
-	print("huhu",cmd)
 	try:
 		FreeCADGui.addCommand(cmd, makeCV_master2(cmd))
 		cvCmds.append(cmd)

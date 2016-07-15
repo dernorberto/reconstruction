@@ -2,13 +2,12 @@
 #-------------------------------------------------
 #-- nurbs editor -
 #--
-#-- microelly 2016 v 0.0
+#-- microelly 2016 v 0.1
 #--
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
 from say import *
-
 
 
 layout='''
@@ -38,7 +37,6 @@ VerticalLayout:
 			setMaximum: 7
 			setTickInterval: 1
 			valueChanged.connect: app.runget
-
 
 
 		QtGui.QLabel:
@@ -122,31 +120,29 @@ VerticalLayout:
 class MyApp(object):
 
 	def getselection(self):
+		''' get pole from gui selection '''
 		s=Gui.Selection.getSelection()
 		print s[0].Label
 		se=Gui.Selection.getSelectionEx()
 		ss=se[0]
-		
+
 		sn=ss.SubElementNames
-		print sn
 		# ('Vertex32',)
 		polnr=int(sn[0][6:])
-		print ("pole ", polnr)
-		
+		print ("pole number ", polnr)
+
 		uc=self.obj.Object.nNodes_v
 		vc=self.obj.Object.nNodes_u
 
-
 		u=(polnr-1) % vc
 		v=(polnr-1) / vc
-		print ("u,v",u,v)
 		self.root.ids['vd'].setValue(v)
 		self.root.ids['ud'].setValue(u)
 		self.run()
-		
-		
+
 
 	def upp(self):
+		''' move pole selection u-axis up '''
 		u=int(self.root.ids['ud'].value())
 		u += 1
 		uc=self.obj.Object.nNodes_u
@@ -162,7 +158,6 @@ class MyApp(object):
 		v += 1
 		uc=self.obj.Object.nNodes_u
 		vc=self.obj.Object.nNodes_v
-
 		if v >=vc: v=0
 		self.root.ids['v'].setText(str(v+1))
 		self.root.ids['vd'].setValue(v)
@@ -184,8 +179,11 @@ class MyApp(object):
 		self.root.ids['vd'].setValue(v)
 		self.run()
 
+
 	def run2(self):
+		''' run for update '''
 		try:
+			# dont run during a locked transaction
 			if self.lock: return
 		except: pass
 		print "RUN2"
@@ -196,6 +194,9 @@ class MyApp(object):
 
 
 	def run(self):
+		''' run a change in the dialog od the nurbs '''
+		
+		# create the helper sphere
 		try:
 			s=App.ActiveDocument.Sphere
 		except:
@@ -203,37 +204,32 @@ class MyApp(object):
 		s.Radius=1
 		s.ViewObject.ShapeColor=(1.0,1.0,0.0)
 
+
 		g=self.obj.Object.Proxy.g
-		u=int(self.root.ids['u'].text())
-		v=int(self.root.ids['v'].text())
 
-		print self.root.ids['h'].text()
+		# data from the input fields
+#		u=int(self.root.ids['u'].text())
+#		v=int(self.root.ids['v'].text())
+#		h=int(round(float(self.root.ids['h'].text())))
 
-		h=int(round(float(self.root.ids['h'].text())))
-
+		# data from the dialers
 		u=int(self.root.ids['ud'].value())
 		v=int(self.root.ids['vd'].value())
 		h=int(round(self.root.ids['hd'].value()))
 		w=int(round(self.root.ids['wd'].value()))
-		
-		
+
+		# write dialer data to the input fields
 		self.root.ids['u'].setText(str(u+1))
 		self.root.ids['v'].setText(str(v+1))
 		self.root.ids['h'].setText(str(h))
 		self.root.ids['w'].setText(str(w))
 
-		print ("neue werte u,v ", u,v,"h,w",h,w)
-#		movePoint(g,u,v,0,0,h)
+
 		if  self.root.ids['setmode'].isChecked():
 			print "AKTUALISIERE"
 			self.obj.Object.Proxy.setpointZ(u,v,h,w)
-			a=App.ActiveDocument.Nurbs
-			a.polnumber=u+a.nNodes_u*v
-			a.Height=h
-			# self.root.ids['setmode'].click()
 		else:
 			self.get()
-
 			h=g[v][u][2]
 			print ("u,v,h",u,v,h)
 			uc=self.obj.Object.nNodes_u
@@ -248,8 +244,7 @@ class MyApp(object):
 			self.root.ids['wd'].setValue(w)
 #			self.root.ids['w'].setText(str(h))
 			print ("hole  werte u,v ", u,v,"h,w",h,w)
-			
-			
+
 		s.Placement.Base=FreeCAD.Vector(tuple(g[v][u]))
 
 		try:
@@ -257,7 +252,7 @@ class MyApp(object):
 			ss.ViewObject.Transparency=90
 		except:
 			pass
-		
+
 		self.root.ids['setmode'].setChecked(False)
 
 
@@ -272,45 +267,29 @@ class MyApp(object):
 		s.ViewObject.ShapeColor=(1.0,1.0,0.0)
 
 		g=self.obj.Object.Proxy.g
-		u=int(self.root.ids['u'].text())
-		v=int(self.root.ids['v'].text())
-
-		print self.root.ids['h'].text()
-
-		h=int(round(float(self.root.ids['h'].text())))
 
 		u=int(self.root.ids['ud'].value())
 		v=int(self.root.ids['vd'].value())
-		h=int(round(self.root.ids['hd'].value()))
-		w=int(round(self.root.ids['wd'].value()))
-		
-		
+
 		self.root.ids['u'].setText(str(u+1))
 		self.root.ids['v'].setText(str(v+1))
-		self.root.ids['h'].setText(str(h))
-		self.root.ids['w'].setText(str(w))
-
-		print ("neue werte u,v ", u,v,"h,w",h,w)
-
-		self.get()
 
 		h=g[v][u][2]
-		print ("u,v,h",u,v,h)
+
 		uc=self.obj.Object.nNodes_u
 		vc=self.obj.Object.nNodes_v
 
 		self.root.ids['hd'].setValue(h)
-
 		self.root.ids['h'].setText(str(h))
-		print "hole weight von ",((v)*uc+u)
-		print "hole weight von ",((v)*uc+u,"uc,vc",uc,vc)
-		print self.obj.Object.weights
+#		print "hole weight von ",((v)*uc+u)
+#		print "hole weight von ",((v)*uc+u,"uc,vc",uc,vc)
+#		print self.obj.Object.weights
+
 		w=self.obj.Object.weights[(v)*uc+u]
 		self.root.ids['wd'].setValue(w)
-#			self.root.ids['w'].setText(str(h))
+		self.root.ids['w'].setText(str(w))
+
 		print ("hole  werte u,v ", u,v,"h,w",h,w)
-		
-		
 		s.Placement.Base=FreeCAD.Vector(tuple(g[v][u]))
 
 		try:
@@ -325,10 +304,11 @@ class MyApp(object):
 
 
 	def modh(self):
+		''' dialog has changed -> modify object '''
 		u=int(self.root.ids['ud'].value())
 		v=int(self.root.ids['vd'].value())
 		h=int(round(self.root.ids['hd'].value()))
-		self.root.ids['h'].setText(str(h))
+
 		try:
 			s=App.ActiveDocument.Sphere
 		except:
@@ -350,7 +330,6 @@ class MyApp(object):
 
 		print "shape .."
 		print self.obj.Object.Proxy.g.shape
-		
 
 
 
@@ -361,14 +340,14 @@ def mydialog(obj):
 
 	app=MyApp()
 	miki=miki.Miki()
-	
+
 	miki.app=app
 	app.root=miki
 	app.obj=obj
 
 	miki.parse2(layout)
 	miki.run(layout)
-	
+
 	miki.ids['ud'].setMaximum(obj.Object.nNodes_u-1)
 	miki.ids['vd'].setMaximum(obj.Object.nNodes_v-1)
 	

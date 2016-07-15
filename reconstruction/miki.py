@@ -13,11 +13,11 @@
 
 
 def creatorFunction(name):
-	print "creator Function :", name
+#	print "creator Function :", name
 #	if name.startswith('Part::'):
 #		return "App.activeDocument().addObject(name,'test')"
 	if name.startswith('Part.'):
-		print "huhu"
+#		print "huhu"
 		[a,c]=name.split('.')
 		return "App.activeDocument().addObject('Part::"+c+"','test')"
 
@@ -197,6 +197,7 @@ class Miki():
 		r=None
 		r=[-1,0,0,'']
 		for l in ls:
+
 			if r: 
 				rs.append(r)
 				r=[-1,0,0,'']
@@ -255,7 +256,7 @@ class Miki():
 
 				res=re.search("(\S+[^:]):\s*([^:]\S.*)",st)
 				if res:
-					print app
+#					print app
 					r=[l,line,parent,"att val",res.group(1),eval(res.group(2))]
 					if res.group(1) =='Name':
 #						print "setze Namen von parent"
@@ -282,22 +283,28 @@ class Miki():
 					res=re.search("(\S+):",st)
 					if res:    
 						r=[l,line,parent,"obj", res.group(1),'no anchor']
-		print
-		print "lines parsed ..."
-		for r in rs:
-				print r
 
-		print 
-		print "Anchors ...."
 		self.anchors=refs
-		print self.anchors
 		self.lines=rs
-		print
-		print
 
+
+
+		debug = 0
+		if debug:
+			print
+			print "lines parsed ..."
+			for r in rs:
+					print r
+
+			print 
+			print "Anchors ...."
+			print
+			print self.anchors
+			print
 
 
 	def build(self):
+
 		for l in self.lines:
 
 			if l[3]=='cmd':
@@ -308,10 +315,10 @@ class Miki():
 				continue
 			if l[3]=='obj' or  l[3]=='anchor' or  l[3]=='local class':
 					name=l[4]
-					print name
+#					print name
 					try: 
-						print "class check ..."
-						print self.classes
+#						print "class check ..."
+#						print self.classes
 						self.classes[name]
 						f=name+"()"
 						f2=name
@@ -320,7 +327,7 @@ class Miki():
 
 					if len(l)<7: # no name for object
 						l.append('')
-					print "**", f
+#					print "**", f
 
 
 
@@ -329,7 +336,7 @@ class Miki():
 						h=eval(f2)
 					else:
 						h=eval(f)
-					print h
+#					print h
 					if len(l)<7:
 						l.append(None)
 					l.append(h)
@@ -338,11 +345,11 @@ class Miki():
 				if l[4]=='Name': continue
 				if l[3]=='obj' or  l[3]=='anchor':
 					parent=self.lines[l[2]][7]
-					print parent
-					print l
-					print l[7]
+#					print parent
+#					print l
+#					print l[7]
 					self.addChild(parent,l[7])
-					print l
+#					print l
 				if l[3]=='link':
 					parent=self.lines[l[2]][7]
 					try:
@@ -353,28 +360,28 @@ class Miki():
 				#----------------------------------
 						method=l[4]
 						v=self.lines[l[6]][6]
-						print "check atts"
+#						print "check atts"
 						kk=eval("parent."+l[4])
 						cnkk=kk.__class__.__name__
-						print ["vor function ", cnkk]
+#						print ["vor function ", cnkk]
 						
 						if cnkk.startswith('So'):
-							print "So ..."
-							print v
-							print v.__class__
+#							print "So ..."
+#							print v
+#							print v.__class__
 							ex="parent."+method+".setValue(" +str(v) + ")"
 							exec(ex)
 							continue
 						if cnkk =='builtin_function_or_method':
 							# qt 2...
-							print "mche was"
-							print v
-							print "parent."+l[4]
+#							print "mche was"
+#							print v
+#							print "parent."+l[4]
 							kk(v)
-							print "okay"
+#							print "okay"
 							continue
 						cn=v.__class__.__name__
-						print [v,cn]
+#						print [v,cn]
 						if cn=='int' or  cn=='float':
 							ex="parent."+l[4]+"="+str(v)
 						elif cn=='str':
@@ -382,9 +389,9 @@ class Miki():
 						else:
 							print "nicht implementierter typ"
 							ex=''
-						print "!!! *!!** "+ex
+#						print "!!! *!!** "+ex
 						exec(ex)
-						print parent
+#						print parent
 						
 				#-----------------------------------
 			if l[3]=='att val' or  l[3]=='anchor attr':
@@ -398,7 +405,7 @@ class Miki():
 					if l[3]=='att val':
 						v=l[5]
 					else:
-						print "anchor val"
+#						print "anchor val"
 						v=l[6]
 					if method=='id':
 						self.ids[v]=parent
@@ -408,7 +415,7 @@ class Miki():
 					except:
 						
 						cn=v.__class__.__name__
-						print [v,cn]
+#						print [v,cn]
 						if cn=='int' or  cn=='float':
 							ex="parent."+l[4]+"="+str(v)
 						elif cn=='str':
@@ -417,33 +424,33 @@ class Miki():
 							print "nicht implementierter typ"
 							ex=''
 #						ex="parent."+l[4]+"="+str(v)
-						print "*** "+ex
+#						print "*** "+ex
 						exec(ex)
 						continue
 
 
 					kk=eval("parent."+l[4])
 					cnkk=kk.__class__.__name__
-					print "vor function ", cnkk
+#					print "vor function ", cnkk
 					if cnkk.startswith('So'):
-						print "So ..."
-						print v
-						print v.__class__
+#						print "So ..."
+#						print v
+#						print v.__class__
 						ex="parent."+method+".setValue(" +str(v) + ")"
 						exec(ex)
 						continue
 					
 					if cnkk =='builtin_function_or_method':
 							# qt 3...
-							print "mche was"
-							print v
-							print "parent."+l[4]
+#							print "mche was"
+#							print v
+#							print "parent."+l[4]
 							kk(v)
-							print "okay"
+#							print "okay"
 							continue
 
 					cn=v.__class__.__name__
-					print [v,cn]
+#					print [v,cn]
 					if cn=='int' or  cn=='float':
 						ex="parent."+l[4]+"="+str(v)
 					elif cn=='str':
@@ -451,9 +458,9 @@ class Miki():
 					else:
 						print "nicht implementierter typ"
 						ex=''
-					print "//*** "+ex
+#					print "//*** "+ex
 					exec(ex)
-					print parent
+#					print parent
 		print "Ende build"
 
 
@@ -466,7 +473,7 @@ class Miki():
 					r=l[7]
 #					print r
 					if r.__class__.__name__.startswith('So'):
-						print r
+#						print r
 						sg = FreeCADGui.ActiveDocument.ActiveView.getSceneGraph()
 						sg.addChild(r)
 
@@ -479,7 +486,7 @@ class Miki():
 					r=l[7]
 #					print r
 					if r.__class__.__name__.startswith('So'):
-						print r
+#						print r
 						dok = FreeCADGui.getDocument(dokname)
 						sg=dok.ActiveView.getSceneGraph()
 						sg.addChild(r)
@@ -488,19 +495,19 @@ class Miki():
 
 	def addChild(self,p,c):
 		cc=c.__class__.__name__
-		print p
-		print p.__class__
-		print 
-		print c
-		print c.__class__
-		print cc
-		
+#		print p
+#		print p.__class__
+#		print 
+#		print c
+#		print c.__class__
+#		print cc
+#		
 
 		if str(c.__class__).startswith("<type 'PySide.QtGui."):
-			print "pyside"
-			print p
-			dir(p)
-			print p.layout
+#			print "pyside"
+#			print p
+#			dir(p)
+#			print p.layout
 			p.layout.addWidget(c)
 			return
 		
@@ -509,7 +516,7 @@ class Miki():
 			return
 
 		if p.__class__.__name__=='object' or str(p.__class__).startswith("<class 'geodat.miki."):
-			print "Add children to object"
+#			print "Add children to object"
 			try:
 				p.children.append(c)
 			except:
@@ -533,13 +540,13 @@ class Miki():
 
 
 	def run(self,string,cmd=None):
-		print "parse2 ...."
+		debug=False
+		if debug: print "parse2 ...."
 		self.parse2(string)
-		print "build ...#"
+		if debug: print "build ...#"
 		self.build()
-		
-		print "build done jujk"
-		print "showSo ..."
+
+		if debug:  print "showSo ..."
 		self.showSo()
 		if cmd<>None:
 			print "CMD ..."

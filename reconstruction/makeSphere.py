@@ -13,7 +13,6 @@ from sympy import Point3D,Plane
 import FreeCAD,FreeCADGui
 
 
-print "yy"
 App=FreeCAD
 Gui=FreeCADGui
 
