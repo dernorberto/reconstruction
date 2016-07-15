@@ -15,8 +15,8 @@ def createPool():
 
 	App.ActiveDocument.Nurbs.ViewObject.ShapeColor=(0.00,1.00,1.00)
 
-	a.nNodes_u=30
-	a.nNodes_v=30
+	a.nNodes_u=8
+	a.nNodes_v=5
 
 	# create the base grid
 	ps=a.Proxy.getPoints()

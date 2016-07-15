@@ -14,6 +14,21 @@
 # http://www.opencascade.com/doc/occt-6.9.0/refman/html/class_geom___b_spline_surface.htm
 
 
+
+if 0:
+	view = Gui.ActiveDocument.ActiveView
+	viewer=view.getViewer()
+	render=viewer.getSoRenderManager()
+	action=render.getGLRenderAction()
+	action.getTypeId().getName() # => "SoBoxSelectionRenderAction" is our own class
+
+	# replace it with the standard render action
+	glAction=coin.SoGLRenderAction(render.getViewportRegion())
+	render.setGLRenderAction(glAction)
+	render.setRenderMode(render.WIREFRAME_OVERLAY)
+
+
+
 import numpy as np
 from say import *
 
@@ -36,7 +51,7 @@ class Nurbs(PartFeature):
 		obj.addProperty("App::PropertyInteger","nNodes_v","Nurbs","").nNodes_v=5
 		obj.addProperty("App::PropertyFloatList","knot_u","Nurbs","").knot_u=[0,0,0,0.33,0.67,1,1,1]
 		obj.addProperty("App::PropertyFloatList","knot_v","Nurbs","").knot_v=[0,0,0,0.33,0.67,1,1,1]
-		obj.addProperty("App::PropertyFloatList","weights","Nurbs","")
+		obj.addProperty("App::PropertyFloatList","weights","Nurbs","").weights=[1]*(uc*vc)
 
 
 		obj.addProperty("App::PropertyFloat","Height","Nurbs", "Height of the Nurbs").Height=1.0
@@ -82,11 +97,16 @@ class Nurbs(PartFeature):
 		l=[1.0/(vc-2)*i for i in range(vc-1)]
 		obj.knot_v=[0,0]+ l + [1,1]
 
+		try:
+			weights=np.array(obj.weights)
+			weights=weights.reshape(vc,uc)
+		except:
+			weights=np.ones(vc*uc)
+			weights=weights.reshape(vc,uc)
 
-		weights=np.ones(uc*vc)
-		weights=weights.reshape(vc,uc)
-		weights[4]=10
-		weights[:][2]=10
+		
+#		weights[2][:]=20
+#		weights[:][2]=10
 		obj.weights=list(np.ravel(weights))
 
 
@@ -128,8 +148,12 @@ class Nurbs(PartFeature):
 		i=0
 		for jj in range(0,nNodes_v):
 			for ii in range(0,nNodes_u):
-				# bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1);
-				bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1)
+				#bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1);
+				try:
+					# bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1.0+weights[jj,ii]+weights[ii,jj])
+					bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),weights[jj,ii])
+				except:
+					bs.setPole(ii+1,jj+1,FreeCAD.Vector((coor[i][0],coor[i][1],coor[i][2])),1);
 				i=i+1;
 
 		s=bs.toShape()
@@ -146,6 +170,7 @@ class Nurbs(PartFeature):
 		comp=Part.makeCompound(vts)
 		Part.show(comp)
 		App.ActiveDocument.ActiveObject.Label="Poles and Surface"
+		
 
 		return App.ActiveDocument.ActiveObject
 
@@ -182,11 +207,7 @@ class Nurbs(PartFeature):
 #		vc,uc,tt=gg.shape
 		uc=self.obj2.nNodes_v
 		vc=self.obj2.nNodes_u
-		
-		print "shwoGriduv"
-		print gg.shape
-		print ("uc vc ",uc,vc)
-		
+
 		for u in range(uc):
 			for v in range(vc):
 	#			print(u,v)
@@ -207,6 +228,7 @@ class Nurbs(PartFeature):
 			self.grid.Shape=comp
 		else:
 			Part.show(comp)
+			App.ActiveDocument.ActiveObject.ViewObject.hide()
 			self.grid=App.ActiveDocument.ActiveObject
 			self.grid.Label="Pole Grid"
 		App.activeDocument().recompute()
@@ -214,8 +236,27 @@ class Nurbs(PartFeature):
 		return comp
 
 
-	def setpointZ(self,u,v,h):
+	def setpointZ(self,u,v,h,w=20):
+		print ("setpoint u,v,h,w ",u,v,h,w)
 		self.g[v][u][2]=h
+		uc=self.obj2.nNodes_u
+		vc=self.obj2.nNodes_v
+#		ww=np.array(self.obj2.weights)
+#		ww=ww.reshape(uc,vc)
+#		# ww[u,v]=w
+#		ww[v,u]=w
+#		self.obj2.weights=list(np.ravel(ww))
+		print ("setpoint u,v,h,w pos ",u,v,h,w,v*uc+u )
+#		print self.obj2.weights
+		try:
+			wl=self.obj2.weights
+			wl[v*uc+u]=w
+#			print wl
+			self.obj2.weights=wl
+#			print self.obj2.weights
+		except:
+			sayexc()
+
 		self.updatePoles()
 		self.showGriduv()
 
@@ -345,8 +386,8 @@ class Nurbs(PartFeature):
 		
 		g=self.g
 		vc,uc,tt=self.g.shape
-		print "add V line"
-		print self.g.shape
+		#print "add V line"
+		#print self.g.shape
 		g=g.swapaxes(0,1)
 
 		vline=[]
@@ -359,9 +400,9 @@ class Nurbs(PartFeature):
 
 		vline=np.array(vline)
 
-		print(g[:vp].shape)
-		print vline.shape
-		
+		#print(g[:vp].shape)
+		#print vline.shape
+
 		gg=np.concatenate((g[:vp],[vline],g[vp:]))
 		gg=gg.swapaxes(0,1)
 
@@ -378,10 +419,8 @@ class Nurbs(PartFeature):
 
 	def updatePoles(self):
 		ll="["
-		print "rshale 1"
 		vc,uc,tt=self.g.shape
 		gf=self.g.reshape(uc*vc,3)
-		print "resh 2"
 		for i in gf: 
 			ll += str( list(i)) +","
 		ll +="]"
@@ -635,3 +674,85 @@ if 0:
 
 
 
+
+
+def addS(self,vp):
+		
+		g=self.g
+		vc,uc,tt=self.g.shape
+		print self.g.shape
+		g=g.swapaxes(0,1)
+
+
+		vline=[]
+		for i in range(vc):
+			pos=0.5
+			if i<0.3*vc: pos= 0.0001
+			if i>0.6*vc: pos= 0.9999
+			
+			vline.append([(pos*g[vp-1][i][0]+(1-pos)*g[vp][i][0]),(pos*g[vp-1][i][1]+(1-pos)*g[vp][i][1]),(pos*g[vp-1][i][2]+(1-pos)*g[vp][i][2])] )
+
+		vline=np.array(vline)
+
+		gg=np.concatenate((g[:vp],[vline],g[vp:]))
+		gg=gg.swapaxes(0,1)
+
+		self.g=gg
+
+		#self.obj2.nNodes_u=uc
+		self.obj2.nNodes_u += 1
+
+		self.updatePoles()
+		c=self.showGriduv()
+		
+		return gg
+
+
+
+
+if 1:
+
+	uc=5
+	vc=8
+
+	a=makeNurbs()
+
+	App.ActiveDocument.Nurbs.ViewObject.ShapeColor=(0.00,1.00,1.00)
+	App.ActiveDocument.Nurbs.ViewObject.Transparency = 70
+
+
+	a.nNodes_u=uc
+	a.nNodes_v=vc
+
+
+
+	# punkte holen
+	ps=a.Proxy.getPoints()
+
+	# daten in gitter
+	g=a.Proxy.togrid(ps)
+
+
+	#for i in range(uc-1):
+	#	a.Proxy.addVline(uc-1-i)
+
+	a.Proxy.addVline(3)
+	a.Proxy.elevateVline(3,1)
+	
+
+	if 0:
+		a.Proxy.addVline(3,0.7)
+		a.Proxy.addVline(3,0.2)
+
+
+		addS(a.Proxy,4)
+		a.Proxy.addVline(2,1)
+		a.Proxy.elevateVline(2,0)
+
+		a.Proxy.addVline(8,0)
+		a.Proxy.elevateVline(8,0)
+
+	Gui.activeDocument().activeView().viewAxonometric()
+	Gui.SendMsgToActiveView("ViewFit")
+
+	print "okay"
