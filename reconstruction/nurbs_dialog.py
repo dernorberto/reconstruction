@@ -36,7 +36,7 @@ VerticalLayout:
 			setMinimum: 0
 			setMaximum: 7
 			setTickInterval: 1
-			valueChanged.connect: app.runget
+			valueChanged.connect: app.getDataFromNurbs
 
 
 		QtGui.QLabel:
@@ -52,7 +52,7 @@ VerticalLayout:
 			setMinimum: 0
 			setMaximum: 5
 			setTickInterval: 1
-			valueChanged.connect: app.runget
+			valueChanged.connect: app.getDataFromNurbs
 
 
 		QtGui.QLabel:
@@ -67,7 +67,7 @@ VerticalLayout:
 			setMinimum: -100
 			setMaximum: 100
 			id: 'hd'
-			valueChanged.connect: app.modh
+			valueChanged.connect: app.modHeight
 
 		QtGui.QLabel:
 			setText:"weight "
@@ -81,16 +81,16 @@ VerticalLayout:
 			setMinimum: 1
 			setMaximum: 20
 			id: 'wd'
-			valueChanged.connect: app.modh
+			valueChanged.connect: app.modHeight
 
 
 		QtGui.QPushButton:
 			setText: "Commit values"
-			clicked.connect: app.run2
+			clicked.connect: app.update
 
 		QtGui.QPushButton:
 			setText: "Get object info for debug"
-			clicked.connect: app.get
+			clicked.connect: app.getInfo
 
 		QtGui.QPushButton:
 			setText: "u++"
@@ -138,7 +138,7 @@ class MyApp(object):
 		v=(polnr-1) / vc
 		self.root.ids['vd'].setValue(v)
 		self.root.ids['ud'].setValue(u)
-		self.run()
+		self.setDataToNurbs()
 
 
 	def upp(self):
@@ -151,7 +151,7 @@ class MyApp(object):
 		if u >=uc : u=0
 		self.root.ids['u'].setText(str(u+1))
 		self.root.ids['ud'].setValue(u)
-		self.run()
+		self.setDataToNurbs()
 
 	def vpp(self):
 		v=int(self.root.ids['vd'].value())
@@ -161,7 +161,7 @@ class MyApp(object):
 		if v >=vc: v=0
 		self.root.ids['v'].setText(str(v+1))
 		self.root.ids['vd'].setValue(v)
-		self.run()
+		self.setDataToNurbs()
 
 	def umm(self):
 		u=int(self.root.ids['ud'].value())
@@ -169,7 +169,7 @@ class MyApp(object):
 		if u <0: u=self.obj.Object.nNodes_u-1
 		self.root.ids['u'].setText(str(u+1))
 		self.root.ids['ud'].setValue(u)
-		self.run()
+		self.setDataToNurbs()
 
 	def vmm(self):
 		v=int(self.root.ids['vd'].value())
@@ -177,24 +177,24 @@ class MyApp(object):
 		if v < 0: v= self.obj.Object.nNodes_v - 1
 		self.root.ids['v'].setText(str(v+1))
 		self.root.ids['vd'].setValue(v)
-		self.run()
+		self.setDataToNurbs()
 
 
-	def run2(self):
-		''' run for update '''
+	def update(self):
+		''' setDataToNurbs for update '''
 		try:
-			# dont run during a locked transaction
+			# dont setDataToNurbs during a locked transaction
 			if self.lock: return
 		except: pass
-		print "RUN2"
+		print "setDataToNurbs2"
 		if not self.root.ids['setmode'].isChecked():
 			print "setze setmode"
 			self.root.ids['setmode'].click()
-			self.run()
+			self.setDataToNurbs()
 
 
-	def run(self):
-		''' run a change in the dialog od the nurbs '''
+	def setDataToNurbs(self):
+		''' setDataToNurbs a change in the dialog for the nurbs '''
 		
 		# create the helper sphere
 		try:
@@ -229,7 +229,7 @@ class MyApp(object):
 			print "AKTUALISIERE"
 			self.obj.Object.Proxy.setpointZ(u,v,h,w)
 		else:
-			self.get()
+			self.getInfo()
 			h=g[v][u][2]
 			print ("u,v,h",u,v,h)
 			uc=self.obj.Object.nNodes_u
@@ -256,8 +256,8 @@ class MyApp(object):
 		self.root.ids['setmode'].setChecked(False)
 
 
-	def runget(self):
-		print "start runget"
+	def getDataFromNurbs(self):
+		print "start getDataFromNurbs"
 		self.lock=True
 		try:
 			s=App.ActiveDocument.Sphere
@@ -300,10 +300,10 @@ class MyApp(object):
 		
 		self.root.ids['setmode'].setChecked(False)
 		self.lock=False
-		print "runget fertig"
+		print "getDataFromNurbs fertig"
 
 
-	def modh(self):
+	def modHeight(self):
 		''' dialog has changed -> modify object '''
 		u=int(self.root.ids['ud'].value())
 		v=int(self.root.ids['vd'].value())
@@ -316,11 +316,11 @@ class MyApp(object):
 		s.Radius=1
 		s.ViewObject.ShapeColor=(.0,1.0,0.0)
 		s.Placement.Base.z=h
-		self.run2()
+		self.update()
 
 
 
-	def get(self):
+	def getInfo(self):
 		return
 
 		print "get obj"
