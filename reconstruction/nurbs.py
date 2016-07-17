@@ -378,7 +378,7 @@ class Nurbs(PartFeature):
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
 
-		for i in range(uc):
+		for i in range(1,uc-1):
 			self.g[vp][i][2]=height
 
 		self.updatePoles()
@@ -393,7 +393,7 @@ class Nurbs(PartFeature):
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
 
-		for i in range(vc):
+		for i in range(1,vc-1):
 			self.g[i][vp][2]=height
 
 		self.updatePoles()
@@ -445,8 +445,9 @@ class Nurbs(PartFeature):
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
 
-		for iv in range(vc):
-			for iu in range(uc):
+		for iv in range(1,vc-1):
+			for iu in range(1,uc-1):
+				
 				if (iv+iu)%2 == 0:
 					self.g[iu][iv][2]=height
 				else:
