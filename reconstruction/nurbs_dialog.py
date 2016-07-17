@@ -11,7 +11,8 @@ from say import *
 
 
 layout='''
-VerticalLayout:
+VerticalLayoutTab:
+#VerticalLayout:
 		id:'main'
 
 		QtGui.QLabel:
@@ -19,8 +20,20 @@ VerticalLayout:
 		QtGui.QLabel:
 
 		QtGui.QCheckBox:
+			id: 'polegrid' 
+			setText: 'calculate PoleGrid'
+			stateChanged.connect: app.calculatePoleGrid
+
+		QtGui.QCheckBox:
 			id: 'setmode' 
 			setText: 'Pole only'
+
+		QtGui.QCheckBox:
+			id: 'relativemode' 
+			setText: 'Height relative'
+			stateChanged.connect: app.relativeMode
+			setChecked: True
+
 
 
 		QtGui.QLabel:
@@ -31,9 +44,9 @@ VerticalLayout:
 			id: 'u'
 
 		QtGui.QDial:
-			setValue: 30
+			setValue: 2
 			id: 'ud'
-			setMinimum: 0
+			setMinimum: 1
 			setMaximum: 7
 			setTickInterval: 1
 			valueChanged.connect: app.getDataFromNurbs
@@ -47,9 +60,9 @@ VerticalLayout:
 			id: 'v'
 
 		QtGui.QDial:
-			setValue: 30
+			setValue: 2
 			id: 'vd'
-			setMinimum: 0
+			setMinimum: 1
 			setMaximum: 5
 			setTickInterval: 1
 			valueChanged.connect: app.getDataFromNurbs
@@ -83,10 +96,15 @@ VerticalLayout:
 			id: 'wd'
 			valueChanged.connect: app.modHeight
 
-
 		QtGui.QPushButton:
-			setText: "Commit values"
-			clicked.connect: app.update
+			setText: "Commit relative values"
+			id: 'updateRelative'
+			clicked.connect: app.updateRelative
+
+
+#		QtGui.QPushButton:
+#			setText: "Commit values"
+#			clicked.connect: app.update
 
 		QtGui.QPushButton:
 			setText: "Get object info for debug"
@@ -140,6 +158,21 @@ class MyApp(object):
 		self.root.ids['ud'].setValue(u)
 		self.setDataToNurbs()
 
+	def relativeMode(self):
+		print("RELATVE MODE")
+		print self.root.ids['relativemode'].isChecked()
+		if self.root.ids['relativemode'].isChecked():
+			self.obj.Object.Proxy.gBase =  self.obj.Object.Proxy.g.copy()
+			try: self.root.ids['updateRelative'].show()
+			except: pass
+		else:
+			self.root.ids['updateRelative'].hide()
+		print self.obj.Object.Proxy.gBase.shape
+		print "set  relative"
+ 
+	def calculatePoleGrid(self):
+		self.obj.Object.Proxy.calculatePoleGrid=self.root.ids['polegrid'].isChecked()
+ 
 
 	def upp(self):
 		''' move pole selection u-axis up '''
@@ -193,7 +226,26 @@ class MyApp(object):
 			self.setDataToNurbs()
 
 
-	def setDataToNurbs(self):
+
+	def updateRelative(self):
+		''' setDataToNurbs for update '''
+		try:
+			# dont setDataToNurbs during a locked transaction
+			if self.lock: return
+		except: pass
+		print "setDataToNurbs2"
+		if not self.root.ids['setmode'].isChecked():
+			print "setze setmode"
+			self.root.ids['setmode'].click()
+			self.setDataToNurbs(True)
+
+
+#			id: 'updateRelative'
+#			clicked.connect: app.updateRelative
+
+
+
+	def setDataToNurbs(self,updateRelative=False):
 		''' setDataToNurbs a change in the dialog for the nurbs '''
 		
 		# create the helper sphere
@@ -203,6 +255,9 @@ class MyApp(object):
 			s=App.ActiveDocument.addObject("Part::Sphere","Sphere")
 		s.Radius=1
 		s.ViewObject.ShapeColor=(1.0,1.0,0.0)
+		s.ViewObject.PointColor=(1.0,1.0,0.0)
+		s.ViewObject.PointSize=10
+		App.activeDocument().recompute()
 
 
 		g=self.obj.Object.Proxy.g
@@ -227,7 +282,17 @@ class MyApp(object):
 
 		if  self.root.ids['setmode'].isChecked():
 			print "AKTUALISIERE"
-			self.obj.Object.Proxy.setpointZ(u,v,h,w)
+			if  self.root.ids['relativemode'].isChecked():
+				print "set relative values ..."
+				self.obj.Object.Proxy.setpointRelativeZ(u,v,h,w)
+				if updateRelative:
+					self.obj.Object.Proxy.setpointRelativeZ(u,v,h,w,updateRelative)
+					self.root.ids['h'].setText(str(0))
+					self.root.ids['hd'].setValue(0)
+
+			else:
+				print "set absoliute "
+				self.obj.Object.Proxy.setpointZ(u,v,h,w)
 		else:
 			self.getInfo()
 			h=g[v][u][2]
@@ -265,6 +330,9 @@ class MyApp(object):
 			s=App.ActiveDocument.addObject("Part::Sphere","Sphere")
 		s.Radius=1
 		s.ViewObject.ShapeColor=(1.0,1.0,0.0)
+		s.ViewObject.PointColor=(1.0,1.0,0.0)
+		s.ViewObject.PointSize=10
+		App.activeDocument().recompute()
 
 		g=self.obj.Object.Proxy.g
 
@@ -278,14 +346,19 @@ class MyApp(object):
 
 		uc=self.obj.Object.nNodes_u
 		vc=self.obj.Object.nNodes_v
-
-		self.root.ids['hd'].setValue(h)
-		self.root.ids['h'].setText(str(h))
+		if  self.root.ids['relativemode'].isChecked():
+			self.root.ids['hd'].setValue(0)
+			self.root.ids['h'].setText(str(0))
+		else:
+			self.root.ids['hd'].setValue(h)
+			self.root.ids['h'].setText(str(h))
+		
 #		print "hole weight von ",((v)*uc+u)
 #		print "hole weight von ",((v)*uc+u,"uc,vc",uc,vc)
 #		print self.obj.Object.weights
 
 		w=self.obj.Object.weights[(v)*uc+u]
+		
 		self.root.ids['wd'].setValue(w)
 		self.root.ids['w'].setText(str(w))
 
@@ -315,6 +388,10 @@ class MyApp(object):
 			s=App.ActiveDocument.addObject("Part::Sphere","Sphere")
 		s.Radius=1
 		s.ViewObject.ShapeColor=(.0,1.0,0.0)
+		s.ViewObject.PointColor=(1.0,1.0,0.0)
+		s.ViewObject.PointSize=10
+		App.activeDocument().recompute()
+
 		s.Placement.Base.z=h
 		self.update()
 
@@ -348,9 +425,9 @@ def mydialog(obj):
 	miki.parse2(layout)
 	miki.run(layout)
 
-	miki.ids['ud'].setMaximum(obj.Object.nNodes_u-1)
-	miki.ids['vd'].setMaximum(obj.Object.nNodes_v-1)
-	
+	miki.ids['ud'].setMaximum(obj.Object.nNodes_u-2)
+	miki.ids['vd'].setMaximum(obj.Object.nNodes_v-2)
+	app.getDataFromNurbs()
 	
 	return miki
 

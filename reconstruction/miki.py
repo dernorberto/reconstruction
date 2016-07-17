@@ -7,8 +7,62 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
+#------------------
+
+from say import *
+
+# create new Tab in ComboView
+from PySide import QtGui,QtCore
+#from PySide import uic
+ 
+def getMainWindow():
+   "returns the main window"
+   toplevel = QtGui.qApp.topLevelWidgets()
+   for i in toplevel:
+	   if i.metaObject().className() == "Gui::MainWindow":
+		   return i
+   raise Exception("No main window found")
+
+def getComboView(mw):
+   dw=mw.findChildren(QtGui.QDockWidget)
+   for i in dw:
+	   if str(i.objectName()) == "Combo View":
+		   return i.findChild(QtGui.QTabWidget)
+	   elif str(i.objectName()) == "Python Console":
+		   return i.findChild(QtGui.QTabWidget)
+   raise Exception ("No tab widget found")
+
+def ComboViewShowWidget(widget,tabMode=False):
+
+	# stopp to default
+	if not tabMode:
+		widget.show()
+		return
 
 
+	mw = getMainWindow()
+	tab = getComboView(getMainWindow())
+	print ("!count ",tab.count())
+	c=tab.count()
+	for i in range(c-1,1,-1):
+		print i
+		print tab.widget(i)
+		tab.removeTab(i)
+	
+	#tab2=QtGui.QDialog()
+	tab.addTab(widget,"Nurbs Editor")
+	tab.setCurrentIndex(2)
+
+	#tab2.show()
+	# tab.removeTab(3)
+	print "ComboViewShowWidget done"
+
+
+# w=QtGui.QPushButton("huhuwaw")
+
+
+
+#-------------------
 
 
 
@@ -72,6 +126,32 @@ def sayexc(mess=''):
 #***************
 YourSpecialCreator=Animation.createManager
 
+def  fv2(name="vertical",title=''):
+
+	# w=QtGui.QWidget()
+	t=QtGui.QLabel("my widget")
+	w=MyDockWidget(t,"Reconstruction WB")
+	
+###	w.setStyleSheet("QWidget { font: bold 18px;color:brown;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+
+	if title <>'': w.setWindowTitle(title)
+	
+	layout = QtGui.QVBoxLayout()
+	layout.setAlignment(QtCore.Qt.AlignTop)
+	#w.layout=layout
+	#w.setLayout(layout)
+
+	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	# w.show()
+	ComboViewShowWidget(w,True)
+	try:
+		FreeCAD.w5.append(w)
+	except:
+		FreeCAD.w5=[w]
+
+	return w
+
+
 def  fv(name="vertical",title=''):
 
 	# w=QtGui.QWidget()
@@ -89,12 +169,14 @@ def  fv(name="vertical",title=''):
 
 	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 	w.show()
+	# ComboViewShowWidget(w,True)
 	try:
 		FreeCAD.w5.append(w)
 	except:
 		FreeCAD.w5=[w]
 
 	return w
+
 
 
 def  fh(name="horizontal",title=''):
@@ -110,7 +192,8 @@ def  fh(name="horizontal",title=''):
 #	pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 #	layout.addWidget(pB)
 	if title <>'': w.setWindowTitle(title)
-	w.show()
+	# w.show()
+	ComboViewShowWidget(w,False)
 	w.layout=layout
 	return w
 
@@ -124,7 +207,8 @@ def  ftab2(name="horizontal"):
 	pB= QtGui.QLabel(name)
 	pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 	layout.addWidget(pB)
-	w.show()
+	# w.show()
+	ComboViewShowWidget(w,False)
 
 	w1=QtGui.QWidget()
 ###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
@@ -164,6 +248,7 @@ def  ftab2(name="horizontal"):
 
 
 VerticalLayout=fv
+VerticalLayoutTab=fv2
 HorizontalLayout=fh
 
 #***************

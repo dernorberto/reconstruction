@@ -29,6 +29,28 @@ import FreeCAD, FreeCADGui
 
 windowCreated = 0
 
+
+class nurbsEditor:
+
+	def Activated(self):
+		FreeCAD.Console.PrintMessage("run  ... ")
+		import reconstruction.nurbs
+		reload(reconstruction.nurbs)
+		print "okay"
+		reconstruction.nurbs.createnurbs()
+
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : 'Std_Tool1', 
+			'MenuText': 'Nurbs Editor', 
+			'ToolTip': ''
+		}
+
+FreeCADGui.addCommand('Nurbs Editor', nurbsEditor())
+
+
+
 class pointcloudComposer:
 
 	def Activated(self):
@@ -325,7 +347,7 @@ class Reconstruction ( Workbench ):
 
 	def Initialize(self):
 		global cvCmds
-		cmds= ["houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV",'Point Cloud Composer']
+		cmds= ['Nurbs Editor',"houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV",'Point Cloud Composer']
 		cmds += cvCmds
 	##	self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)
