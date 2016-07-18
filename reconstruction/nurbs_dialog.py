@@ -15,9 +15,9 @@ VerticalLayoutTab:
 #VerticalLayout:
 		id:'main'
 
-		QtGui.QLabel:
-			setText:"***   N U R B S     E D I T O R   ***"
-		QtGui.QLabel:
+#		QtGui.QLabel:
+#			setText:"***   N U R B S     E D I T O R   ***"
+#		QtGui.QLabel:
 
 		QtGui.QCheckBox:
 			id: 'polegrid' 
@@ -27,12 +27,33 @@ VerticalLayoutTab:
 		QtGui.QCheckBox:
 			id: 'setmode' 
 			setText: 'Pole only'
+			setVisible: False
 
 		QtGui.QCheckBox:
 			id: 'relativemode' 
 			setText: 'Height relative'
 			stateChanged.connect: app.relativeMode
 			setChecked: True
+
+		QtGui.QLabel:
+			setText:"Action "
+
+		QtGui.QComboBox:
+			id: 'actionmode'
+			addItem: "change Height relative"
+			addItem: "set absolute Height and Weight"
+			addItem: "Add VLine"
+			addItem: "Add ULine"
+			addItem: "Elevate VLine"
+			addItem: "Elevate ULine"
+			addItem: "Elevate Rectangle"
+			addItem: "Elevate Circle"
+			currentIndexChanged.connect: app.setActionMode
+
+		QtGui.QPushButton:
+			id: "runbutton"
+			setText: "Run Action"
+			clicked.connect: app.run
 
 
 
@@ -96,19 +117,16 @@ VerticalLayoutTab:
 			id: 'wd'
 			valueChanged.connect: app.modHeight
 
-		QtGui.QPushButton:
-			setText: "Commit relative values"
-			id: 'updateRelative'
-			clicked.connect: app.updateRelative
+#		QtGui.QPushButton:
+#			setText: "Commit relative values"
+#			id: 'updateRelative'
+#			clicked.connect: app.updateRelative
+
 
 
 #		QtGui.QPushButton:
-#			setText: "Commit values"
-#			clicked.connect: app.update
-
-		QtGui.QPushButton:
-			setText: "Get object info for debug"
-			clicked.connect: app.getInfo
+#			setText: "Get object info for debug"
+#			clicked.connect: app.getInfo
 
 		QtGui.QPushButton:
 			setText: "u++"
@@ -136,6 +154,85 @@ VerticalLayoutTab:
 
 
 class MyApp(object):
+
+	def updateDialog(self):
+		self.root.ids['ud'].setMaximum(self.obj.Object.nNodes_u-1)
+		self.root.ids['vd'].setMaximum(self.obj.Object.nNodes_v-1)
+
+	def setActionMode(self):
+		print "set Action Mode"
+		rc=self.root.ids['actionmode'].currentText()
+		print rc
+		if rc=="change Height relative":
+			if not self.root.ids['relativemode'].isChecked():
+				self.root.ids['relativemode'].click()
+				self.getDataFromNurbs()
+		if rc=="set absolute Height and Weight":
+			if self.root.ids['relativemode'].isChecked():
+				self.root.ids['relativemode'].click()
+				self.getDataFromNurbs()
+			self.root.ids['runbutton'].hide()
+			return
+		self.root.ids['runbutton'].show()
+
+
+
+	def run(self):
+		rc=self.root.ids['actionmode'].currentText()
+		print rc
+		if rc=='Add ULine':
+			v=self.root.ids['vd'].value()
+			self.obj.Object.Proxy.addUline(v,0.5)
+			self.updateDialog()
+			print "done"
+			
+			return
+		if rc=='Add VLine':
+			u=self.root.ids['ud'].value()
+			self.obj.Object.Proxy.addVline(u,0.5)
+			self.updateDialog()
+			print "done"
+			return
+		if rc=="change Height relative":
+			if not self.root.ids['relativemode'].isChecked():
+				self.root.ids['relativemode'].click()
+			self.updateRelative()
+			return
+		if rc=="set absolute Height and Weight":
+			if self.root.ids['relativemode'].isChecked():
+				self.root.ids['relativemode'].click()
+			self.update()
+			return
+		if rc== "Elevate VLine":
+			u=self.root.ids['ud'].value()
+			h=int(round(self.root.ids['hd'].value()))
+			self.obj.Object.Proxy.elevateVline(u,h)
+			return
+		if rc== "Elevate ULine":
+			v=self.root.ids['vd'].value()
+			h=int(round(self.root.ids['hd'].value()))
+			self.obj.Object.Proxy.elevateUline(v,h)
+			return
+
+		if rc== "Elevate Rectangle":
+			v=self.root.ids['vd'].value()
+			u=self.root.ids['ud'].value()
+			h=int(round(self.root.ids['hd'].value()))
+			dv=2
+			du=1
+			self.obj.Object.Proxy.elevateRectangle(v,u,dv,du,h)
+			return
+
+		if rc== "Elevate Circle":
+			v=self.root.ids['vd'].value()
+			u=self.root.ids['ud'].value()
+			h=int(round(self.root.ids['hd'].value()))
+			r=2
+			self.obj.Object.Proxy.elevateCircle2(v,u,r,h)
+			return
+
+
+		print "not implemented"
 
 	def getselection(self):
 		''' get pole from gui selection '''
@@ -425,8 +522,8 @@ def mydialog(obj):
 	miki.parse2(layout)
 	miki.run(layout)
 
-	miki.ids['ud'].setMaximum(obj.Object.nNodes_u-2)
-	miki.ids['vd'].setMaximum(obj.Object.nNodes_v-2)
+	miki.ids['ud'].setMaximum(obj.Object.nNodes_u-1)
+	miki.ids['vd'].setMaximum(obj.Object.nNodes_v-1)
 	app.getDataFromNurbs()
 	
 	return miki

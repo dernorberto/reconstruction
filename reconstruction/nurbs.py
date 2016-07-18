@@ -64,6 +64,7 @@ class Nurbs(PartFeature):
 		obj.addProperty("App::PropertyFloatList","knot_v","Nurbs","").knot_v=[0,0,0,0.33,0.67,1,1,1]
 		obj.addProperty("App::PropertyFloatList","weights","Nurbs","").weights=[1]*(uc*vc)
 
+		obj.addProperty("App::PropertyEnumeration","model","Nurbs","").model=["NurbsSuface","NurbsCylinder","NurbsSphere"]
 
 		obj.addProperty("App::PropertyFloat","Height","Nurbs", "Height of the Nurbs").Height=1.0
 		obj.addProperty("App::PropertyStringList","poles","Nurbs","")
@@ -145,10 +146,62 @@ class Nurbs(PartFeature):
 			   [0,3,1],[1,3,0],[2,3,1],[3,3,-3],[4,3,1],\
 			   [0,4,1],[1,4,1],[2,4,1],[3,4,1],[4,4,1]]
 
+
 		if poles<>None:
 			cc=""
 			for l in poles: cc += str(l)
 			coor=eval(cc)
+
+
+#--------------------------------
+		if obj.model=="NurbsCylinder":
+			# create cylinder face
+			coor=[]
+			ws=[]
+			zl=[0,100,200,300,400]
+			rl=[1,1.5,2,1,1] 
+			rl=[1,1,2,1,1] 
+#			rl=[1,1,1,1,1] 
+			import random
+			for iz in range(5):
+				z=zl[iz]
+				r=rl[iz]
+				zs=[[0,-100*r,z],[100*r,-100*r,z],[100*r,0,z],[100*r,100*r,z],
+						[0,100*r,z],[-100*r,100*r,z],[-100*r,0,z],[-100*r,-100*r,z],[0,-100*r,z]]
+
+#				if iz==2:
+#					zs=[[0,-100*r,z],[100*r,-100*r,z],[100*r+60,0,z],[100*r,100*r,z],
+#						[0,100*r,z],[-100*r,100*r,z],[-100*r-40,0,z],[-100*r,-100*r,z],[0,-100*r,z]]
+
+				w=[1,0.7,1,0.7,1,0.7,1,0.7,1]
+				coor += zs
+				ws += w
+			print "coord"
+			print coor
+			weights=np.array(ws)
+#			weights=np.ones(9*5)
+			weights=weights.reshape(5,9)
+			
+			print len(weights)
+			print weights
+			weights=weights.reshape(5,9)
+			
+			nNodes_u=9
+			nNodes_v=5
+			
+			knot_u=[0,0,0, 0.2,0.2,0.4,0.4,0.6,0.6, 1,1,1]
+#			knot_u=[0,0.,0., 0.2,0.2,0.4,0.4,0.6,0.9, 0.9,0.9]
+#			knot_u=[0,0.,0.1, 0.2,0.2,0.4,0.4,0.6,0.9, 0.9,0.9]
+#			knot_u=[0.0,0.0,0.1,0.1,0.2,0.2,0.4,0.4,0.6,0.6,0.96, 0.96]
+			knot_v=[0,0,0,0.3,0.7,1,1,1]
+
+			obj.knot_v= knot_v
+			obj.knot_u= knot_u
+
+			obj.weights=list(np.ravel(weights))
+#--------------------------------------
+
+
 
 		#val=coor[obj.polnumber]
 		#coor[obj.polnumber]=[val[0],val[1],obj.Height]
@@ -156,15 +209,26 @@ class Nurbs(PartFeature):
 		obj.poles=str(coor)
 
 		bs=Part.BSplineSurface()
+
+
 		bs.increaseDegree(degree_u,degree_v)
 
+
+
+		if obj.model=="NurbsCylinder":
+			# cylindwer usw
+			pass
+			# bs.setUPeriodic()
+
 		for i in range(0,len(knot_u)):
-				# if knot_u[i+1] > knot_u[i]:
+				#if knot_u[i+1] > knot_u[i]:
 						 bs.insertUKnot(knot_u[i],1,0.0000001)
 
 		for i in range(0,len(knot_v)):
-				# if knot_v[i+1] > knot_v[i]:
+				#if knot_v[i+1] > knot_v[i]:
 						 bs.insertVKnot(knot_v[i],1,0.0000001)
+
+
 
 		i=0
 		for jj in range(0,nNodes_v):
@@ -176,50 +240,52 @@ class Nurbs(PartFeature):
 						sayexc("setPols ii,jj:"+str([ii,jj]))
 				i=i+1;
 
+
+
 		obj.Shape=bs.toShape()
 		# FreeCAD.bs=bs
-		
-		# create the box
-		mx=np.array(coor).reshape(nNodes_v,nNodes_u,3)
-		print "create box"
-		print (mx.shape)
-		a0=tuple(mx[0,0])
-		b0=tuple(mx[0,-1])
-		c0=tuple(mx[-1,-1])
-		d0=tuple(mx[-1,0])
+		if 0:
+			# create the box
+			mx=np.array(coor).reshape(nNodes_v,nNodes_u,3)
+			print "create box"
 
-		a=tuple(mx[0,0]+[0,0,-20])
-		b=tuple(mx[0,-1]+[0,0,-20])
-		c=tuple(mx[-1,-1]+[0,0,-20])
-		d=tuple(mx[-1,0]+[0,0,-20])
-		print (a,b,c,d)
-		
-		lls=[Part.makeLine(a0,b0),Part.makeLine(b0,b),Part.makeLine(b,a),Part.makeLine(a,a0)]
-		fab=Part.makeFilledFace(lls)
-		lls=[Part.makeLine(b0,c0),Part.makeLine(c0,c),Part.makeLine(c,b),Part.makeLine(b,b0)]
-		fbc=Part.makeFilledFace(lls)
-		lls=[Part.makeLine(c0,d0),Part.makeLine(d0,d),Part.makeLine(d,c),Part.makeLine(c,c0)]
-		fcd=Part.makeFilledFace(lls)
-		lls=[Part.makeLine(d0,a0),Part.makeLine(a0,a),Part.makeLine(a,d),Part.makeLine(d,d0)]
-		fda=Part.makeFilledFace(lls)
-		lls=[Part.makeLine(a,b),Part.makeLine(b,c),Part.makeLine(c,d),Part.makeLine(d,a)]
-		ff=Part.makeFilledFace(lls)
-		
-		fs=[fab,fbc,fcd,fda,ff,obj.Shape]
+			print (mx.shape)
+			a0=tuple(mx[0,0])
+			b0=tuple(mx[0,-1])
+			c0=tuple(mx[-1,-1])
+			d0=tuple(mx[-1,0])
 
-#		for f in fs: Part.show(f)
+			a=tuple(mx[0,0]+[0,0,-20])
+			b=tuple(mx[0,-1]+[0,0,-20])
+			c=tuple(mx[-1,-1]+[0,0,-20])
+			d=tuple(mx[-1,0]+[0,0,-20])
+			print (a,b,c,d)
+			
+			lls=[Part.makeLine(a0,b0),Part.makeLine(b0,b),Part.makeLine(b,a),Part.makeLine(a,a0)]
+			fab=Part.makeFilledFace(lls)
+			lls=[Part.makeLine(b0,c0),Part.makeLine(c0,c),Part.makeLine(c,b),Part.makeLine(b,b0)]
+			fbc=Part.makeFilledFace(lls)
+			lls=[Part.makeLine(c0,d0),Part.makeLine(d0,d),Part.makeLine(d,c),Part.makeLine(c,c0)]
+			fcd=Part.makeFilledFace(lls)
+			lls=[Part.makeLine(d0,a0),Part.makeLine(a0,a),Part.makeLine(a,d),Part.makeLine(d,d0)]
+			fda=Part.makeFilledFace(lls)
+			lls=[Part.makeLine(a,b),Part.makeLine(b,c),Part.makeLine(c,d),Part.makeLine(d,a)]
+			ff=Part.makeFilledFace(lls)
+			
+			fs=[fab,fbc,fcd,fda,ff,obj.Shape]
 
-		comp=Part.makeCompound(fs)
-		s=Part.makeShell(fs)
-		# Part.show(s)
-		sol=Part.makeSolid(s)
+	#		for f in fs: Part.show(f)
+
+			comp=Part.makeCompound(fs)
+			s=Part.makeShell(fs)
+			# Part.show(s)
+			sol=Part.makeSolid(s)
+			
+			
+			Part.show(sol)
+		# obj.Shape=sol
 		
 		
-		# Part.show(sol)
-		obj.Shape=sol
-		
-		
-		print "done"
 		
 		nurbstime=time.time()
 		#create the poles and surface helper for visualization
@@ -229,7 +295,7 @@ class Nurbs(PartFeature):
 
 		#and the surface
 
-		vts.append(obj.Shape)
+		# vts.append(obj.Shape)
 		comp=Part.makeCompound(vts)
 		comptime=time.time()
 		try:
@@ -245,7 +311,7 @@ class Nurbs(PartFeature):
 #		yy.Shape=App.ActiveDocument.ActiveObject.Shape
 
 		endtime=time.time()
-		print ("create Nirbs time",nurbstime-starttime)
+		print ("create Nurbs time",nurbstime-starttime)
 		print ("create helper time",endtime-nurbstime)
 		print ("create comp time",comptime-nurbstime)
 		print ("create Surface time",endtime-comptime)
@@ -311,7 +377,7 @@ class Nurbs(PartFeature):
 	def setpointZ(self,u,v,h=0,w=20):
 		''' set height and weight of a pole point '''
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("set Point " +str((u,v,h,w)))
 
 		self.g[v][u][2]=h
 		uc=self.obj2.nNodes_u
@@ -330,11 +396,12 @@ class Nurbs(PartFeature):
 	def setpointRelativeZ(self,u,v,h=0,w=0,update=False):
 
 		''' set relative height and weight of a pole point '''
-
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		if update:
+			FreeCAD.ActiveDocument.openTransaction("set Point relative " + str((u,v,h,w)))
 
 		print self.g[v][u]
 		print "realtive ",h
+		print "updae Flag",update
 		self.g[v][u][2] = self.gBase[v][u][2] + h
 		
 		print self.g[v][u]
@@ -353,14 +420,15 @@ class Nurbs(PartFeature):
 
 		self.updatePoles()
 		self.showGriduv()
-		FreeCAD.ActiveDocument.commitTransaction()
+		if update:
+			FreeCAD.ActiveDocument.commitTransaction()
 
 
 
 	def movePoint(self,u,v,dx,dy,dz):
 		''' relative move ofa pole point '''
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("move Point " + str((u,v,dx,dy,dz)))
 
 		self.g[v][u][0] += dx
 		self.g[v][u][1] += dy
@@ -403,14 +471,15 @@ class Nurbs(PartFeature):
 	def elevateRectangle(self,v,u,dv,du,height=50):
 		''' change the height of all poles inside a rectangle of the pole grid'''
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("elevate rectangle " + str((u,v,dv,du,height)))
 
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
 
 		for iv in range(v,v+dv+1):
 			for iu in range(u,u+du+1):
-				self.g[iu][iv][2]=height
+				try: self.g[iu][iv][2]=height
+				except: pass
 
 		self.updatePoles()
 		self.showGriduv()
@@ -420,7 +489,7 @@ class Nurbs(PartFeature):
 	def elevateCircle(self,u=20,v=30,radius=10,height=60):
 		''' change the height for poles around a cenral pole '''
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("elevate Circle " + str((u,v,radius,height)))
 
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
@@ -428,8 +497,32 @@ class Nurbs(PartFeature):
 		g=self.g
 		for iv in range(vc):
 			for iu in range(uc):
-				if (g[iu][iv][0]-g[u][v][0])**2 + (g[iu][iv][1]-g[u][v][1])**2 <= radius**2: 
+				try:
+					if (g[iu][iv][0]-g[u][v][0])**2 + (g[iu][iv][1]-g[u][v][1])**2 <= radius**2: 
+						g[iu][iv][2]=height
+				except:
+					pass
+		self.g=g
+
+		self.updatePoles()
+		self.showGriduv()
+		FreeCAD.ActiveDocument.commitTransaction()
+
+	def elevateCircle2(self,u=20,v=30,radius=10,height=60):
+		''' change the height for poles around a cenral pole '''
+
+		FreeCAD.ActiveDocument.openTransaction("elevate Circle " + str((u,v,radius,height)))
+
+		uc=self.obj2.nNodes_u
+		vc=self.obj2.nNodes_v
+
+		g=self.g
+		for iv in range(v-radius,v+radius+1):
+			for iu in range(u-radius,u+radius+1):
+				try:
 					g[iu][iv][2]=height
+				except:
+					pass
 		self.g=g
 
 		self.updatePoles()
@@ -437,10 +530,11 @@ class Nurbs(PartFeature):
 		FreeCAD.ActiveDocument.commitTransaction()
 
 
+
 	def createWaves(self,height=10,depth=-5):
 		'''wave pattern over all'''
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("create waves " + str((height,depth)))
 
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
@@ -461,7 +555,7 @@ class Nurbs(PartFeature):
 	def addUline(self,vp,pos=0.5):
 		''' insert a line of poles after vp, pos is relative to the next Uline'''
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("add ULine " +str((vp,pos))) 
 
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
@@ -495,7 +589,7 @@ class Nurbs(PartFeature):
 
 	def addVline(self,vp,pos=0.5):
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("add Vline " + str((vp,pos)))
 
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
@@ -527,7 +621,7 @@ class Nurbs(PartFeature):
 	def addS(self,vp):
 		''' harte kante links, weicher uebergang, harte kante rechts ''' 
 
-		FreeCAD.ActiveDocument.openTransaction("move Point")
+		FreeCAD.ActiveDocument.openTransaction("add vertical S " + str(vp))
 
 		uc=self.obj2.nNodes_u
 		vc=self.obj2.nNodes_v
@@ -936,7 +1030,6 @@ def runtest():
 
 def createnurbs():
 
-
 	a=makeNurbs(6,10)
 	ps=a.Proxy.getPoints()
 	a.Proxy.togrid(ps)
@@ -948,3 +1041,27 @@ def createnurbs():
 
 	Gui.activeDocument().activeView().viewAxonometric()
 	Gui.SendMsgToActiveView("ViewFit")
+
+
+def runtest():
+	return createnurbs()
+	
+
+	a=makeNurbs(9,5)
+	a.model="NurbsCylinder"
+	ps=a.Proxy.getPoints()
+	a.Proxy.togrid(ps)
+	
+	
+	a.Proxy.updatePoles()
+	a.Proxy.showGriduv()
+
+	App.activeDocument().recompute()
+	Gui.updateGui()
+
+	Gui.activeDocument().activeView().viewAxonometric()
+	Gui.SendMsgToActiveView("ViewFit")
+
+
+
+
