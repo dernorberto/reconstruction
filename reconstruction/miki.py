@@ -7,13 +7,7 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-#------------------
-
 from say import *
-
-# create new Tab in ComboView
-from PySide import QtGui,QtCore
-#from PySide import uic
  
 def getMainWindow():
    "returns the main window"
@@ -39,51 +33,36 @@ def ComboViewShowWidget(widget,tabMode=False):
 		widget.show()
 		return
 
-
 	mw = getMainWindow()
 	tab = getComboView(getMainWindow())
-	print ("!count ",tab.count())
 	c=tab.count()
+
+	# clear the combo  window
 	for i in range(c-1,1,-1):
-		print i
-		print tab.widget(i)
 		tab.removeTab(i)
-	
-	#tab2=QtGui.QDialog()
-	tab.addTab(widget,"Nurbs Editor")
+
+	# start the requested tab
+	tab.addTab(widget,"Reconstruction Tool")
 	tab.setCurrentIndex(2)
 
-	#tab2.show()
-	# tab.removeTab(3)
 	print "ComboViewShowWidget done"
 
 
-# w=QtGui.QPushButton("huhuwaw")
-
-
-
-#-------------------
-
-
-
 def creatorFunction(name):
+
 #	print "creator Function :", name
-#	if name.startswith('Part::'):
-#		return "App.activeDocument().addObject(name,'test')"
 	if name.startswith('Part.'):
-#		print "huhu"
 		[a,c]=name.split('.')
 		return "App.activeDocument().addObject('Part::"+c+"','test')"
 
 	if name.startswith('So'):
 		return "coin."+name+'()'
+
 	if name.startswith('QtGui'):
 		return name+"()"
-# QtGui.QPushButton()
+
 	if name.startswith('MyQtGui'):
 		return name+"()"
-
-
 
 	if name.startswith('Animation'):
 		[a,c]=name.split('.')
@@ -92,62 +71,32 @@ def creatorFunction(name):
 
 	if name in ['Plugger','Manager']:
 		return 'Animation.create'+name+'()'
+
+	#default method
 	return name+'()'
-#	print "no creater Function ***************************"
-	return None
 
-
-
-import FreeCAD,Animation,FreeCADGui
 import re
 import pivy
 from pivy import coin
 
-App=FreeCAD
-
-import PySide
-from PySide import QtCore, QtGui, QtSvg
-
-import traceback,sys
-
-
-
-def sayexc(mess=''):
-	exc_type, exc_value, exc_traceback = sys.exc_info()
-	ttt=repr(traceback.format_exception(exc_type, exc_value,exc_traceback))
-	lls=eval(ttt)
-	l=len(lls)
-	l2=[lls[(l-3)],lls[(l-1)]]
-	FreeCAD.Console.PrintError(mess + "\n" +"-->  ".join(l2))
-	print (mess + "\n" +"-->  ".join(l2))
-
-
-
-#***************
+# a test method
 YourSpecialCreator=Animation.createManager
 
 def  fv2(name="vertical",title=''):
+	''' create as a dock widget '''
 
-	# w=QtGui.QWidget()
 	t=QtGui.QLabel("my widget")
 	w=MyDockWidget(t,"Reconstruction WB")
-	
-###	w.setStyleSheet("QWidget { font: bold 18px;color:brown;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 
 	if title <>'': w.setWindowTitle(title)
-	
-	layout = QtGui.QVBoxLayout()
-	layout.setAlignment(QtCore.Qt.AlignTop)
-	#w.layout=layout
-	#w.setLayout(layout)
+
 
 	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-	# w.show()
 	ComboViewShowWidget(w,True)
-	try:
-		FreeCAD.w5.append(w)
-	except:
-		FreeCAD.w5=[w]
+
+	# store it to FC.w5
+	try: FreeCAD.w5.append(w)
+	except: FreeCAD.w5=[w]
 
 	return w
 
@@ -177,26 +126,65 @@ def  fv(name="vertical",title=''):
 
 	return w
 
+def  fv3(name="vertical",title=''):
+	''' vertical  layout but not a dock widget'''
+
+	w=QtGui.QWidget()
+#	w.setStyleSheet("QWidget { font: bold 18px;color:brown;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+
+	if title <>'': w.setWindowTitle(title)
+
+	layout = QtGui.QVBoxLayout()
+	layout.setAlignment(QtCore.Qt.AlignTop)
+	#w.layout=layout
+	#w.setLayout(layout)
+
+	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	w.show()
+
+	try: FreeCAD.w5.append(w)
+	except: FreeCAD.w5=[w]
+	return w
+
 
 
 def  fh(name="horizontal",title=''):
 	w=QtGui.QWidget()
-	
-	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	#w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 	
 ###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 	layout = QtGui.QHBoxLayout()
 	layout.setAlignment(QtCore.Qt.AlignLeft)
 	w.setLayout(layout)
-#	pB= QtGui.QLabel(name)
-#	pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
-#	layout.addWidget(pB)
+	# Gruppenname setzen:
+	#pB= QtGui.QLabel("name")
+	#pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	#layout.addWidget(pB)
+
 	if title <>'': w.setWindowTitle(title)
-	# w.show()
-	ComboViewShowWidget(w,False)
+	#w.show()
+	#ComboViewShowWidget(w,False)
 	w.layout=layout
 	return w
 
+	
+def  fh2(name="vertik horizontal",title=''):
+	w=QtGui.QWidget()
+	#w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+	
+###	w.setStyleSheet("QWidget { font: bold 18px;color:blue;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	layout = QtGui.QVBoxLayout()
+	layout.setAlignment(QtCore.Qt.AlignLeft)
+	w.setLayout(layout)
+	#pB= QtGui.QLabel("name")
+	#pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
+	#layout.addWidget(pB)
+	if title <>'': w.setWindowTitle(title)
+	#w.show()
+	#ComboViewShowWidget(w,False)
+	w.layout=layout
+	return w
+	
 
 def  ftab2(name="horizontal"):
 	w=QtGui.QWidget()
@@ -245,9 +233,9 @@ def  ftab2(name="horizontal"):
 	return w
 
 
+# name mappings from layout string to methods
 
-
-VerticalLayout=fv
+VerticalLayout=fh2
 VerticalLayoutTab=fv2
 HorizontalLayout=fh
 
@@ -275,13 +263,16 @@ class Miki():
 		app=self.app
 		line=0
 		depth=0
-		d=[0,0,0,0,0,0,0,0,0,0]
-		ln=[0,0,0,0,0,0,0,0,0,0]
+		d=[0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+		ln=[0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 		refs={}
 		rs=[]
 		r=None
 		r=[-1,0,0,'']
 		for l in ls:
+			ltxt=l
+#			print l
+#			print  ln
 
 			if r: 
 				rs.append(r)
@@ -308,17 +299,29 @@ class Miki():
 			res=re.search("(\s*)(\S.*)",l)
 			if res:
 				l=len(res.group(1))
+				
 				if l==0:
 					depth=0
 				if d[depth]<l:
 					depth += 1
 				elif d[depth]>l:
 					depth -= 1
-				d[depth]=l
-				ln[depth]=line
-				parent=ln[depth-1]
-
+				print d
+				print depth
+				try:
+					d[depth]=l
+				except:
+					print "error "
+					print [l, ltxt]
+					pass
+				#ln[depth]=line
+				#parent=ln[depth-1]
+				parent=ln[l-1]
+				ln[l]=line
+#				print ["einzug",l,"depth",depth,"parent",parent,ln]
+#				print 
 				r=[l,line,parent,res.group(2)]
+				r=[l,line,parent,res.group(2),depth,ln]
 				st=res.group(2)
 				
 				res=re.search("(\S+):\s*\*(\S+)",st)
@@ -374,18 +377,18 @@ class Miki():
 
 
 
-		debug = 0
+		debug = 1
 		if debug:
 			print
 			print "lines parsed ..."
 			for r in rs:
 					print r
-
-			print 
-			print "Anchors ...."
-			print
-			print self.anchors
-			print
+			if  len(self.anchors.keys()) >0:
+				print 
+				print "Anchors ...."
+				print
+				print self.anchors
+				print
 
 
 	def build(self):
@@ -607,22 +610,29 @@ class Miki():
 			except:
 				p.children=[c]
 			return
-
-		if str(p.TypeId)=='Part::MultiFuse':
-			z=p.Shapes
-			z.append(c)
-			p.Shapes=z
-		elif str(p.TypeId)=='Part::Compound':
-			z=p.Links
-			z.append(c)
-			p.Links=z
-		else:
-			try: 
-				p.addObject(c)
-			except: 
-				FreeCAD.Console.PrintError("\naddObject funktioniert nicht")
-				FreeCAD.Console.PrintError([p,c])
-
+		print p
+		try:
+			if str(p.TypeId)=='Part::MultiFuse':
+				z=p.Shapes
+				z.append(c)
+				p.Shapes=z
+			elif str(p.TypeId)=='Part::Compound':
+				z=p.Links
+				z.append(c)
+				p.Links=z
+			else:
+				try: 
+					p.addObject(c)
+				except: 
+					FreeCAD.Console.PrintError("\naddObject funktioniert nicht")
+					FreeCAD.Console.PrintError([p,c])
+		except:
+				try: 
+					p.addObject(c)
+				except: 
+					FreeCAD.Console.PrintError("\naddObject funktioniert nicht")
+					FreeCAD.Console.PrintError([p,c])
+		
 
 	def run(self,string,cmd=None):
 		debug=False
@@ -820,3 +830,47 @@ class Miki2(Miki):
 		self.app.obj=obj
 		obj.ViewObject.Proxy.cmenu.append(["Dialog",lambda:self.run(layoutstring)])
 		obj.ViewObject.Proxy.edit= lambda:self.run(layoutstring)
+
+
+
+def testme():
+
+	layout='''
+	VerticalLayoutTab:
+	#	id:'main'
+		QtGui.QLabel:
+			setText:"***   N U R B S     E D I T O R   ***"
+		VerticalLayout:
+			HorizontalLayout:
+				QtGui.QLabel:
+					setText: "huhuwas 1 3"
+				QtGui.QLabel:
+					setText: "huhuwas 2 3"
+				QtGui.QLabel:
+					setText: "huhuwas 3 3"
+			HorizontalLayout:
+				QtGui.QLabel:
+					setText:"Action "
+				QtGui.QPushButton:
+					setText: "Run Action"
+				VerticalLayout:
+					QtGui.QLineEdit:
+						setText:"edit Axample"
+					QtGui.QLineEdit:
+						setText:"edit B"
+				QtGui.QLineEdit:
+					setText:"horizel "
+		HorizontalLayout:
+			QtGui.QLineEdit:
+				setText:"AA"
+			QtGui.QLineEdit:
+				setText:"BB"
+
+	'''
+
+
+	miki=Miki()
+	app.root=miki
+
+	miki.parse2(layout)
+	miki.run(layout)
