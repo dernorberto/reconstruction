@@ -258,6 +258,9 @@ class Miki():
 
 	def parse2(self,s):
 
+		print "PARSE2"
+		print s
+		print "---------------"
 		ls=s.splitlines()
 
 		app=self.app
@@ -485,9 +488,16 @@ class Miki():
 			if l[3]=='att val' or  l[3]=='anchor attr':
 #					print l
 #					print self.lines[l[2]]
-					
+
 
 					method=l[4]
+					print method
+					print "aab"
+					print "------------------------XYYX"
+					print l
+					print ("l[2]",l[2])
+					print self.lines[l[2]]
+					
 					parent=self.lines[l[2]][7]
 
 					if l[3]=='att val':
@@ -837,7 +847,7 @@ def testme():
 
 	layout='''
 	VerticalLayoutTab:
-	#	id:'main'
+		id:'main'
 		QtGui.QLabel:
 			setText:"***   N U R B S     E D I T O R   ***"
 		VerticalLayout:
@@ -870,7 +880,7 @@ def testme():
 
 
 	miki=Miki()
-	app.root=miki
+	#app.root=miki
 
 	miki.parse2(layout)
 	miki.run(layout)

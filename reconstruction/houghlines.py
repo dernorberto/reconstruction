@@ -264,6 +264,7 @@ class MyApp(object):
 
 def run():
 	
+	print "huhu"
 	app=MyApp()
 
 	import geodat

@@ -51,6 +51,28 @@ FreeCADGui.addCommand('Nurbs Editor', nurbsEditor())
 
 
 
+'''
+class perspectiveTrafo:
+
+	def Activated(self):
+		FreeCAD.Console.PrintMessage("run  ... ")
+		import reconstruction.perspective_trafo
+		reload(reconstruction.perspective_trafo)
+		print "okay"
+		reconstruction.perspective_trafo.run()
+
+
+	def GetResources(self):
+		return {
+			'Pixmap'  : 'Std_Tool1', 
+			'MenuText': 'Perspective Image Trafo ', 
+			'ToolTip': ''
+		}
+
+FreeCADGui.addCommand('Perspective Image Trafo',  perspectiveTrafo())
+'''
+
+
 class pointcloudComposer:
 
 	def Activated(self):
@@ -335,6 +357,147 @@ for m in reconstruction.configuration.modes:
 #------------------------------------------
 
 
+# fast command adder template
+
+import os, reconstruction
+global __dir__
+__dir__ = os.path.dirname(reconstruction.__file__)
+
+
+global _Command
+class _Command():
+
+	def __init__(self,lib=None,name=None,icon='/../icons/eye.svg',command=None,modul='reconstruction'):
+
+		if lib==None: lmod=modul
+		else: lmod=modul+'.'+lib
+		if command==None: command=lmod+".run()"
+		else: command =lmod + "."+command
+
+		self.lmod=lmod
+		self.command=command
+		self.modul=modul
+		self.icon=  __dir__+ icon
+
+		if name==None: name=command
+		self.name=name
+
+
+	def GetResources(self): 
+		return {'Pixmap' : self.icon, 'MenuText': self.name, 'ToolTip': self.name } 
+
+	def IsActive(self):
+		if FreeCADGui.ActiveDocument: return True
+		else: return False
+
+	def Activated(self):
+		#FreeCAD.ActiveDocument.openTransaction("create " + self.name)
+		if self.command <> '':
+			if self.modul <>'': modul=self.modul
+			else: modul=self.name
+			FreeCADGui.doCommand("import " + modul)
+			FreeCADGui.doCommand("import "+self.lmod)
+			FreeCADGui.doCommand("reload("+self.lmod+")")
+			FreeCADGui.doCommand(self.command)
+		#FreeCAD.ActiveDocument.commitTransaction()
+		FreeCAD.ActiveDocument.recompute()
+
+
+class _alwaysActive(_Command):
+
+	def IsActive(self):
+			return True
+
+
+
+
+#-----------------------------------------------
+def always():
+	return True
+
+def ondocument():
+	return FreeCADGui.ActiveDocument <> None
+
+def onselection():
+	return len(FreeCADGui.Selection.getSelection())>0
+
+def onselection1():
+	return len(FreeCADGui.Selection.getSelection())==1
+
+def onselection2():
+	return len(FreeCADGui.Selection.getSelection())==2
+
+def onselection3():
+	return len(FreeCADGui.Selection.getSelection())==3
+
+def onselex():
+	return len(FreeCADGui.Selection.getSelectionEx())<>0
+
+def onselex1():
+	return len(FreeCADGui.Selection.getSelectionEx())==1
+
+
+FreeCAD.tcmds6=[]
+
+def c1(menu,name,*info):
+	global _Command
+	name1="Reconstruction_"+name
+	t=_Command(name,*info)
+	FreeCADGui.addCommand(name1,t)
+	FreeCAD.tcmds6.append([menu,name1])
+
+def c1a(menu,isactive,name,*info):
+	global _Command
+	name1="Reconstruction_"+name
+	t=_Command(name,*info)
+	t.IsActive=isactive
+	FreeCADGui.addCommand(name1,t)
+	FreeCAD.tcmds6.append([menu,name1])
+
+def c2(menu,title,name,*info):
+	print info
+	global _Command
+	title1="Reconstruction_"+title
+	FreeCADGui.addCommand(title1,_Command(name,*info))
+	FreeCAD.tcmds6.append([menu,title1])
+
+def c2a(menu,isactive,title,name,*info):
+	print info
+	global _Command
+	t=_Command(name,*info)
+	title1="Reconstruction_"+title
+	t.IsActive=isactive
+	FreeCADGui.addCommand(title1,t)
+	FreeCAD.tcmds6.append([menu,title1])
+
+#-------------------------------
+
+# special conditions fore actions
+def onneedle():
+	dokname=FreeCAD.ParamGet('User parameter:Plugins/reconstruction').GetString("Document","Needle")
+	try: App.getDocument(dokname); return True
+	except: return False
+
+def onspread():
+	try: App.ActiveDocument.Spreadsheet;return True
+	except: return False
+
+
+
+
+
+if FreeCAD.GuiUp:
+
+	c1a(["Image"],always,"perspective_trafo","perspective trafo",'/../icons/perspective_trafo.svg')
+	c1a(["Image"],always,"perspective_trafo_sketch","align bordersfr perspective trafo",'/../icons/align_borders_for_perspective_trafo.svg')
+
+
+	for cmd in FreeCADGui.listCommands():
+		if cmd.startswith("Reconstruction_"):
+			print cmd
+
+
+
 
 class Reconstruction ( Workbench ):
 	'''Reconstruction'''
@@ -349,9 +512,23 @@ class Reconstruction ( Workbench ):
 		global cvCmds
 		cmds= ['Nurbs Editor',"houghlines","Import Image","makeSphere","makeCylinder","makePlane","makePrism","makeCV",'Point Cloud Composer']
 		cmds += cvCmds
+#		cmds2 = ['Perspective Image Trafo']
+#		self.appendToolbar("Image Tools", cmds2 )
+
 	##	self.appendToolbar("Reconstruction", cmds )
 		self.appendMenu("Reconstruction", cmds)
 		Log ("Loading Reconstruction Workbench ... done\n")
+
+		menues={}
+		for (c,a) in FreeCAD.tcmds6:
+			try:menues[tuple(c)].append(a)
+			except: menues[tuple(c)]=[a]
+
+		for m in menues:
+			print m
+			print menues[m]
+			self.appendMenu(list(m),menues[m])
+			self.appendToolbar(list(m)[0],menues[m])
 
 
 	Icon = """

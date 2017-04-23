@@ -18,7 +18,7 @@
 #
 #
 
-import FreeCAD, Draft
+import FreeCAD, Draft,Part
 import FreeCADGui
 Gui=FreeCADGui
 App=FreeCAD
@@ -226,14 +226,14 @@ def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True,shape=None):
 
 
 
-def showFace(rbf,rbf2,x,y,gridsize,shapeColor):
+def showFace(rbf,rbf2,x,y,gridsize,shapeColor,bound):
 
 	import Draft
 	grids=gridsize
 
 	ws=[]
 
-
+	pts2=[]
 	xi, yi = np.linspace(np.min(x), np.max(x), grids), np.linspace(np.min(y), np.max(y), grids)
 
 	for ix in xi:
@@ -241,12 +241,29 @@ def showFace(rbf,rbf2,x,y,gridsize,shapeColor):
 		for iy in yi:
 #			print (ix,iy, rbf(ix,iy))
 			iz=float(rbf(ix,iy))
+
+#---------------------- special hacks #+#
+			if bound>0:
+				if iz > bound: iz = bound
+				if iz < -bound: iz = -bound
+#			print (ix,iy,iz)
+#			if abs(ix)>20 or abs(iy)>20: 
+#					iz=0
+
+#			if ix==np.max(x) or ix==np.min(x) or iy==np.max(y) or iy==np.min(y): 
+#					iz=0
+
+#---------------------- end hack 
+
+
 #			if rbf2<>None:
 #				iz -= float(rbf2(ix,iy))
 
 			points.append(FreeCAD.Vector(iy,ix,iz))
 		w=Draft.makeWire(points,closed=False,face=False,support=None)
 		ws.append(w)
+		pts2.append(points)
+
 #-		FreeCAD.activeDocument().recompute()
 #-		FreeCADGui.updateGui()
 #-		Gui.SendMsgToActiveView("ViewFit")
@@ -260,7 +277,14 @@ def showFace(rbf,rbf2,x,y,gridsize,shapeColor):
 	for w in ws:
 		w.ViewObject.Visibility=False
 
+
 	ll.Label="Interpolation Gitter " + str(grids)
+
+	bs=Part.BSplineSurface()
+#	print "Points --"
+#	print pts2
+	bs.interpolate(pts2)
+	Part.show(bs.toShape())
 
 
 
@@ -297,7 +321,7 @@ def showHeightMap(x,y,z,zi):
 
 
 
-def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
+def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20,zfactor=20,bound=10**5,matplot=False):
 	
 	modeColor={
 	'linear' : ( 1.0, 0.3, 0.0),
@@ -309,6 +333,7 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 	'quintic' :(0.5,1.0, 0.0)
 	}
 
+	print ("Source",source,"mode",mode)
 	if source<>None:
 
 		if hasattr(source,"Shape"):
@@ -323,13 +348,29 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 
 		elif hasattr(source,"Points"):
 			# point cloud
+
 			pts=source.Points.Points
+
+		elif source.__class__.__name__ == 'DocumentObjectGroup':
+			hls=App.ActiveDocument.hoehenlinien
+			apts=[]
+			for l in hls.OutList:
+				pts=[v.Point for v in  l.Shape.Vertexes]
+				apts += pts
+
+			pts=apts
+
 		else:
 			raise Exception("don't know to get points")
 
 		x=[v[1] for v in pts]
 		y=[v[0] for v in pts]
-		z=[v[2] for v in pts]
+		z=[0.01*v[2] for v in pts]
+		# staerker
+		z=[zfactor*v[2] for v in pts]
+		px= coordLists2points(x,y,z)
+		Points.show(Points.Points(px))
+
 
 	else:
 		# testdata
@@ -363,9 +404,14 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 	xmin=np.min(x)
 	ymin=np.min(y)
 
-	showFace(rbf,rbf2,x,y,gridsize,color)
-	
-	showHeightMap(x,y,z,zi)
+	showFace(rbf,rbf2,x,y,gridsize,color,bound)
+ 
+	App.ActiveDocument.ActiveObject.Label=mode + " ZFaktor " + str(zfactor) + " #"
+	rc=App.ActiveDocument.ActiveObject
+
+
+	if matplot: showHeightMap(x,y,z,zi)
+	return rc
 
 	# interpolation for image
 	gridsize=400
@@ -374,7 +420,7 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20):
 	return [rbf,rbf2,x,y,z,zi,zi2]
 
 
-if __name__ == '__main__':
+if 0 and __name__ == '__main__':
 
 	createElevationGrid('thin_plate')
 	createElevationGrid('linear')
@@ -387,5 +433,180 @@ if __name__ == '__main__':
 # http://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html
 
 
+'''
+# testcase http://forum.freecadweb.org/viewtopic.php?f=8&t=6973&p=133292#p133280
+source=App.ActiveDocument.hoehenlinien
+
+# createElevationGrid('multiquadric',True,"gruppe")
+
+#createElevationGrid('linear',True,source,50)
+#createElevationGrid('linear',True,source,80)
+
+createElevationGrid('thin_plate',True,source,30)
+
+App.activeDocument().recompute()3
+
+'''
+
+if 0:
+	source=App.ActiveDocument.messdaten
+
+	# theorie:
+	# radial basis function interpolator instance
+	# http://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html
 
 
+	#for mode in ['linear','thin_plate', 'cubic','inverse','multiquadric','gaussian' ,'quintic' ]:
+
+	for mode in ['linear']:
+	#for mode in ['inverse','multiquadric','gaussian' ,'quintic' ]:
+	#for mode in ['inverse' ]:
+
+		# argumente 100 - anzahl linien im grid
+		# 40 streckungsfaktor nach z --> zeile 353
+		# 10 obere schranke fuer z-werte  --> zeile 245 ff
+		#
+		createElevationGrid(mode,True,source,30,-100,10)
+		App.activeDocument().recompute()
+		Gui.updateGui()
+
+
+
+if 0:
+	#
+	#
+	# texture auflegen
+	# 
+	import geodat.geodat_lib
+	import geodat.postprocessor
+	reload(geodat.postprocessor)
+
+	# nurbs=App.ActiveDocument.MySimpleHood
+	#die Flaechen asl nurbs wird gebraucht
+	nurbs=App.ActiveDocument.Shape
+	s=64
+	kzs=geodat.postprocessor.getHeights(nurbs.Shape.Surface,s)
+	fn=geodat.postprocessor.createColor2(kzs,s,1)
+	geodat.geodat_lib.addImageTexture(nurbs,fn,scale=(1,1))
+	Gui.updateGui()
+	# App.ActiveDocument.Text.LabelText=["Height Map","colormap HSV",str(s**2) + " color pixel"]
+
+
+import PySide
+from PySide import  QtGui,QtCore
+
+def srun(window):
+	print "arbeite ---"
+	print window.colormap
+	window.r.hide()
+	mode=None
+	for it in window.mode.selectedItems():
+		print it.text()
+		mode= it.text()
+	if mode == None: mode = 'linear'
+	print int(window.grid.text())
+	grid=int(window.grid.text())
+	zfac=int(window.zfac.text())
+	zmax=int(window.zmax.text())
+	nb=createElevationGrid(mode,True,window.source,grid,zfac,zmax,matplot=window.matplot.isChecked())
+
+	if window.colormap.isChecked():
+		import geodat.geodat_lib
+		import geodat.postprocessor
+		reload(geodat.postprocessor)
+
+		s=64
+		kzs=geodat.postprocessor.getHeights(nb.Shape.Surface,s)
+		fn=geodat.postprocessor.createColor2(kzs,s,1)
+		geodat.geodat_lib.addImageTexture(nb,fn,scale=(1,1))
+		Gui.updateGui()
+
+	window.hide()
+
+
+def dialog(points):
+	print "dialog ",points.Label
+
+	w=QtGui.QWidget()
+	w.source=points
+
+	box = QtGui.QVBoxLayout()
+	w.setLayout(box)
+	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+
+
+
+	l=QtGui.QLabel("Model" )
+	box.addWidget(l)
+	w.mode = QtGui.QListWidget()
+	w.mode.addItems( ['linear','thin_plate', 'cubic','inverse','multiquadric','gaussian' ,'quintic' ])
+	box.addWidget(w.mode)
+
+	l=QtGui.QLabel("count grid lines" )
+	box.addWidget(l)
+	w.grid = QtGui.QLineEdit()
+	w.grid.setText('20')
+	box.addWidget(w.grid)
+
+	l=QtGui.QLabel("z-scale factor" )
+	box.addWidget(l)
+	w.zfac = QtGui.QLineEdit()
+	w.zfac.setText('10')
+	box.addWidget(w.zfac)
+
+	l=QtGui.QLabel("z-max " )
+	box.addWidget(l)
+	w.zmax = QtGui.QLineEdit()
+	w.zmax.setText('0')
+	box.addWidget(w.zmax)
+
+
+	w.matplot=QtGui.QCheckBox("show Matplot")
+	box.addWidget(w.matplot)
+
+	w.colormap=QtGui.QCheckBox("show colors")
+	box.addWidget(w.colormap)
+
+
+#	h=QtGui.QDial()
+#	h.setMaximum(100)
+#	h.setMinimum(0)
+#	w.ha=h
+
+#	box.addWidget(h)
+
+	w.r=QtGui.QPushButton("run")
+	box.addWidget(w.r)
+	w.r.pressed.connect(lambda :srun(w))
+
+
+	w.show()
+	return w
+
+
+
+def run():
+	import Points
+	try: pcl=FreeCADGui.Selection.getSelection()[0]
+	except:
+		self=None
+		Gui.ActiveDocument=None
+		App.newDocument("Unnamed")
+		App.setActiveDocument("Unnamed")
+		App.ActiveDocument=App.getDocument("Unnamed")
+		Gui.ActiveDocument=Gui.getDocument("Unnamed")
+		fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file with points','/home/thomas/freecad_buch/b234_heini_grid/')
+		print fname
+		Points.insert(fname,"Unnamed")
+		t=App.ActiveDocument.ActiveObject.Label
+		print t
+		Gui.SendMsgToActiveView("ViewFit")
+		pcl=App.ActiveDocument.ActiveObject
+
+	dialog(pcl)
+
+
+
+if __name__ == '__main__':
+	run()

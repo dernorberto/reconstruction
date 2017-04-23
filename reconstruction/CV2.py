@@ -125,23 +125,34 @@ class CVGui(object):
 
 	layout='''
 
-VerticalLayout:
+VerticalLayoutTab:
 	setWindowTitle: '{0}'
 	id:'main'
 #	QtGui.QLabel:
 #			setText:"***    My    C V    Dialog ***"
 
-HorizontalLayout:
+	HorizontalLayout:
 		id:'vela'
-#		setFixedHeight: 500
-#		setFixedWidth: 500
+		setFixedHeight: 500
+		setFixedWidth: 500
 		resize: PySide.QtCore.QSize(400,300)
 		setWindowTitle: '{1}'
-#		move:  PySide.QtCore.QPoint(3000,100)
-#		QtGui.QLabel:
-#			setText:"***    My    C V    Image result  ***"
+		move:  PySide.QtCore.QPoint(3000,100)
+		QtGui.QLabel:
+			setText:"***    My    C V    Image result  ***"
 
 '''
+
+
+	layout='''
+
+VerticalLayoutTab:
+	setWindowTitle: '{0}'
+	id:'main'
+HorizontalLayout:
+	id:'vela'
+'''
+
 
 	def edit(self):
 		say("Edit .. (not implemented)")

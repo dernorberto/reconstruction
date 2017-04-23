@@ -20,14 +20,14 @@ class MatplotlibWidget(FigureCanvas):
 
 		super(MatplotlibWidget, self).__init__(Figure())
 
-		self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+#		self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 		self.setParent(parent)
 		self.figure = Figure(figsize=(width, height), dpi=dpi) 
 		self.canvas = FigureCanvas(self.figure)
 
-		FigureCanvas.setSizePolicy(self,
-				QtGui.QSizePolicy.Expanding,
-				QtGui.QSizePolicy.Expanding)
+#		FigureCanvas.setSizePolicy(self,
+#				QtGui.QSizePolicy.Expanding,
+#				QtGui.QSizePolicy.Expanding)
 
 		FigureCanvas.updateGeometry(self)
 		self.axes = self.figure.add_subplot(111)

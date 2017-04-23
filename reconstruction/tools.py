@@ -15,9 +15,13 @@ import reconstruction.dbscan
 import reconstruction.smooth
 reload(reconstruction.smooth)
 
-import geodat
-reload (geodat.projectiontools)
-from geodat.projectiontools import *
+import reconstruction.projectiontools
+reload (reconstruction.projectiontools)
+from reconstruction.projectiontools import *
+
+#import geodat
+#reload (geodat.projectiontools)
+#from geodat.projectiontools import *
 
 
 def fcline(x1,y1,x2,y2,scaler=1000):
