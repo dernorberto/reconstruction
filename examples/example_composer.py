@@ -3,7 +3,8 @@ from reconstruction.say import *
 
 
 import reconstruction.pointcloud_composer
-reload(reconstruction.pointcloud_composer)
+import importlib
+importlib.reload(reconstruction.pointcloud_composer)
 
 import numpy as np
 # area of interest

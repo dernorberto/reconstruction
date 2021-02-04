@@ -23,12 +23,12 @@ Gui=FreeCADGui
 import Part
 
 def makePrism(l):
-	print l
+	print(l)
 	hp=l[-1]
 	p1=l[0]
 	bl=l[:-1]
 	bl.append(p1)
-	print bl
+	print(bl)
 	
 	s=Part.makePolygon(bl)
 	f=Part.makeFilledFace(s.Edges)
@@ -84,20 +84,20 @@ def run():
 	sels=[]
 	for s in Gui.Selection.getSelectionEx():
 		subs=s.SubObjects
-		print subs
+		print(subs)
 		sels += subs
 	subs=sels
 	for ss in subs:
-		print ss
+		print(ss)
 	if len(subs)<4:
 		raise Exception("less than 4 points")
 	l=[]
 	for e in s.SubObjects: 
-		if e.__class__.__name__ <>'Vertex':
+		if e.__class__.__name__ !='Vertex':
 			raise Exception ("Non edge in selection" + str(e))
-		print e.Point
+		print(e.Point)
 		l.append(e.Point)
-	print s.SubObjects
+	print(s.SubObjects)
 	makePrism(l)
 
 # run()

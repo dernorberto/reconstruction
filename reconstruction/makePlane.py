@@ -78,16 +78,16 @@ def run():
 		subs=s.SubObjects
 		sels += subs
 	subs=sels
-	if len(subs)<>4:
+	if len(subs)!=4:
 		raise Exception("keine vier kanten")
 	l=[]
 	for e in s.SubObjects: 
-		if e.__class__.__name__ <>'Vertex':
+		if e.__class__.__name__ !='Vertex':
 			raise Exception ("Non edge in selection" + str(e))
-		print e.Point
+		print(e.Point)
 		l.append(e.Point)
 	[p1,p2,p3,p4]=l
-	print s.SubObjects
+	print(s.SubObjects)
 
 	makePlane(p1,p2,p3,p4)
 

@@ -3,7 +3,8 @@
 #
 
 import reconstruction.CV2
-reload( reconstruction.CV2)
+import importlib
+importlib.reload( reconstruction.CV2)
 createCV=reconstruction.CV2.createCV
 
 

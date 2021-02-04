@@ -20,6 +20,7 @@
 
 import FreeCAD, Draft,Part
 import FreeCADGui
+import importlib
 Gui=FreeCADGui
 App=FreeCAD
 
@@ -137,7 +138,7 @@ datatext='''1 1 1
 
 def text2coordList(datatext):
 	x=[]; y=[]; z=[]
-	if len(datatext) <> 0:
+	if len(datatext) != 0:
 		lines=datatext.split('\n')
 		for zn,l in enumerate(lines):
 			words=l.split()
@@ -148,7 +149,7 @@ def text2coordList(datatext):
 				y.append(yv)
 				z.append(10*zv)
 			except:
-				print "Fehler in Zeile ",zn
+				print("Fehler in Zeile ",zn)
 
 	x=np.array(x)
 	y=np.array(y)
@@ -207,7 +208,7 @@ def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True,shape=None):
 		gridy=grids
 		gridx=int(round(dx/dy*grids))
 
-	if shape<>None:
+	if shape!=None:
 		(gridy,gridx)=shape
 
 	xi, yi = np.linspace(np.min(x), np.max(x), gridx), np.linspace(np.min(y), np.max(y), gridy)
@@ -217,7 +218,7 @@ def interpolate(x,y,z, gridsize,mode='thin_plate',rbfmode=True,shape=None):
 		rbf = scipy.interpolate.Rbf(x, y, z, function=mode)
 		rbf2 = scipy.interpolate.Rbf( y,x, z, function=mode)
 	else:
-		print "interp2d nicht implementiert"
+		print("interp2d nicht implementiert")
 		rbf = scipy.interpolate.interp2d(x, y, z, kind=mode)
 
 	zi=rbf2(yi,xi)
@@ -333,8 +334,8 @@ def createElevationGrid(mode,rbfmode=True,source=None,gridCount=20,zfactor=20,bo
 	'quintic' :(0.5,1.0, 0.0)
 	}
 
-	print ("Source",source,"mode",mode)
-	if source<>None:
+	print(("Source",source,"mode",mode))
+	if source!=None:
 
 		if hasattr(source,"Shape"):
 			# part object
@@ -479,7 +480,7 @@ if 0:
 	# 
 	import geodat.geodat_lib
 	import geodat.postprocessor
-	reload(geodat.postprocessor)
+	importlib.reload(geodat.postprocessor)
 
 	# nurbs=App.ActiveDocument.MySimpleHood
 	#die Flaechen asl nurbs wird gebraucht
@@ -496,15 +497,15 @@ import PySide
 from PySide import  QtGui,QtCore
 
 def srun(window):
-	print "arbeite ---"
-	print window.colormap
+	print("arbeite ---")
+	print(window.colormap)
 	window.r.hide()
 	mode=None
 	for it in window.mode.selectedItems():
-		print it.text()
+		print(it.text())
 		mode= it.text()
 	if mode == None: mode = 'linear'
-	print int(window.grid.text())
+	print(int(window.grid.text()))
 	grid=int(window.grid.text())
 	zfac=int(window.zfac.text())
 	zmax=int(window.zmax.text())
@@ -513,7 +514,7 @@ def srun(window):
 	if window.colormap.isChecked():
 		import geodat.geodat_lib
 		import geodat.postprocessor
-		reload(geodat.postprocessor)
+		importlib.reload(geodat.postprocessor)
 
 		s=64
 		kzs=geodat.postprocessor.getHeights(nb.Shape.Surface,s)
@@ -525,7 +526,7 @@ def srun(window):
 
 
 def dialog(points):
-	print "dialog ",points.Label
+	print("dialog ",points.Label)
 
 	w=QtGui.QWidget()
 	w.source=points
@@ -597,10 +598,10 @@ def run():
 		App.ActiveDocument=App.getDocument("Unnamed")
 		Gui.ActiveDocument=Gui.getDocument("Unnamed")
 		fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file with points','/home/thomas/freecad_buch/b234_heini_grid/')
-		print fname
+		print(fname)
 		Points.insert(fname,"Unnamed")
 		t=App.ActiveDocument.ActiveObject.Label
-		print t
+		print(t)
 		Gui.SendMsgToActiveView("ViewFit")
 		pcl=App.ActiveDocument.ActiveObject
 

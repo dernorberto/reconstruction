@@ -7,7 +7,7 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-from say import *
+from .say import *
  
 def getMainWindow():
    "returns the main window"
@@ -45,7 +45,7 @@ def ComboViewShowWidget(widget,tabMode=False):
 	tab.addTab(widget,"Reconstruction Tool")
 	tab.setCurrentIndex(2)
 
-	print "ComboViewShowWidget done"
+	print("ComboViewShowWidget done")
 
 
 def creatorFunction(name):
@@ -88,7 +88,7 @@ def  fv2(name="vertical",title=''):
 	t=QtGui.QLabel("my widget")
 	w=MyDockWidget(t,"Reconstruction WB")
 
-	if title <>'': w.setWindowTitle(title)
+	if title !='': w.setWindowTitle(title)
 
 
 	w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -109,7 +109,7 @@ def  fv(name="vertical",title=''):
 	
 ###	w.setStyleSheet("QWidget { font: bold 18px;color:brown;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 
-	if title <>'': w.setWindowTitle(title)
+	if title !='': w.setWindowTitle(title)
 	
 	layout = QtGui.QVBoxLayout()
 	layout.setAlignment(QtCore.Qt.AlignTop)
@@ -132,7 +132,7 @@ def  fv3(name="vertical",title=''):
 	w=QtGui.QWidget()
 #	w.setStyleSheet("QWidget { font: bold 18px;color:brown;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 
-	if title <>'': w.setWindowTitle(title)
+	if title !='': w.setWindowTitle(title)
 
 	layout = QtGui.QVBoxLayout()
 	layout.setAlignment(QtCore.Qt.AlignTop)
@@ -161,7 +161,7 @@ def  fh(name="horizontal",title=''):
 	#pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 	#layout.addWidget(pB)
 
-	if title <>'': w.setWindowTitle(title)
+	if title !='': w.setWindowTitle(title)
 	#w.show()
 	#ComboViewShowWidget(w,False)
 	w.layout=layout
@@ -179,7 +179,7 @@ def  fh2(name="vertik horizontal",title=''):
 	#pB= QtGui.QLabel("name")
 	#pB.setStyleSheet("QWidget { font: bold 18px;color:red;border-style: outset;border-width: 3px;border-radius: 10px;border-color: blue;}")
 	#layout.addWidget(pB)
-	if title <>'': w.setWindowTitle(title)
+	if title !='': w.setWindowTitle(title)
 	#w.show()
 	#ComboViewShowWidget(w,False)
 	w.layout=layout
@@ -258,9 +258,9 @@ class Miki():
 
 	def parse2(self,s):
 
-		print "PARSE2"
-		print s
-		print "---------------"
+		print("PARSE2")
+		print(s)
+		print("---------------")
 		ls=s.splitlines()
 
 		app=self.app
@@ -309,13 +309,13 @@ class Miki():
 					depth += 1
 				elif d[depth]>l:
 					depth -= 1
-				print d
-				print depth
+				print(d)
+				print(depth)
 				try:
 					d[depth]=l
 				except:
-					print "error "
-					print [l, ltxt]
+					print("error ")
+					print([l, ltxt])
 					pass
 				#ln[depth]=line
 				#parent=ln[depth-1]
@@ -359,7 +359,7 @@ class Miki():
 
 				res=re.search("\s*(\S):\s*([^:]\S.*)",st)
 				if res:
-					print app
+					print(app)
 					r=[l,line,parent,"att val",res.group(1),eval(res.group(2))]
 					if res.group(1) =='Name':
 #						print "setze Namen von parent"
@@ -382,16 +382,16 @@ class Miki():
 
 		debug = 1
 		if debug:
-			print
-			print "lines parsed ..."
+			print()
+			print("lines parsed ...")
 			for r in rs:
-					print r
-			if  len(self.anchors.keys()) >0:
-				print 
-				print "Anchors ...."
-				print
-				print self.anchors
-				print
+					print(r)
+			if  len(list(self.anchors.keys())) >0:
+				print() 
+				print("Anchors ....")
+				print()
+				print(self.anchors)
+				print()
 
 
 	def build(self):
@@ -432,7 +432,7 @@ class Miki():
 						l.append(None)
 					l.append(h)
 					self.objects.append(h)
-			if  l[2] <> 0:
+			if  l[2] != 0:
 				if l[4]=='Name': continue
 				if l[3]=='obj' or  l[3]=='anchor':
 					parent=self.lines[l[2]][7]
@@ -478,7 +478,7 @@ class Miki():
 						elif cn=='str':
 							ex="parent."+l[4]+"='"+v+"'"
 						else:
-							print "nicht implementierter typ"
+							print("nicht implementierter typ")
 							ex=''
 #						print "!!! *!!** "+ex
 						exec(ex)
@@ -491,12 +491,12 @@ class Miki():
 
 
 					method=l[4]
-					print method
-					print "aab"
-					print "------------------------XYYX"
-					print l
-					print ("l[2]",l[2])
-					print self.lines[l[2]]
+					print(method)
+					print("aab")
+					print("------------------------XYYX")
+					print(l)
+					print(("l[2]",l[2]))
+					print(self.lines[l[2]])
 					
 					parent=self.lines[l[2]][7]
 
@@ -519,7 +519,7 @@ class Miki():
 						elif cn=='str':
 							ex="parent."+l[4]+"='"+v+"'"
 						else:
-							print "nicht implementierter typ"
+							print("nicht implementierter typ")
 							ex=''
 #						ex="parent."+l[4]+"="+str(v)
 #						print "*** "+ex
@@ -554,17 +554,17 @@ class Miki():
 					elif cn=='str':
 						ex="parent."+l[4]+"='"+v+"'"
 					else:
-						print "nicht implementierter typ"
+						print("nicht implementierter typ")
 						ex=''
 #					print "//*** "+ex
 					exec(ex)
 #					print parent
-		print "Ende build"
+		print("Ende build")
 
 
 	def showSo(self):
 		for l in self.lines:
-			if  l[2] == 0 and l[0] <>-1:
+			if  l[2] == 0 and l[0] !=-1:
 #					print l
 					if len(l)<7:
 						continue
@@ -579,7 +579,7 @@ class Miki():
 
 	def showSo2(self,dokname):
 		for l in self.lines:
-			if  l[2] == 0 and l[0] <>-1:
+			if  l[2] == 0 and l[0] !=-1:
 #					print l
 					r=l[7]
 #					print r
@@ -620,7 +620,7 @@ class Miki():
 			except:
 				p.children=[c]
 			return
-		print p
+		print(p)
 		try:
 			if str(p.TypeId)=='Part::MultiFuse':
 				z=p.Shapes
@@ -646,16 +646,16 @@ class Miki():
 
 	def run(self,string,cmd=None):
 		debug=False
-		if debug: print "parse2 ...."
+		if debug: print("parse2 ....")
 		self.parse2(string)
-		if debug: print "build ...#"
+		if debug: print("build ...#")
 		self.build()
 
-		if debug:  print "showSo ..."
+		if debug:  print("showSo ...")
 		self.showSo()
-		if cmd<>None:
-			print "CMD ..."
-			print cmd 
+		if cmd!=None:
+			print("CMD ...")
+			print(cmd) 
 			cmd()
 
 
@@ -667,21 +667,21 @@ class Miki():
 		return rl
 
 	def report(results=[]):
-		print "Results ..."
+		print("Results ...")
 		for r in results:
-			print r
+			print(r)
 			if r.__class__.__name__.startswith('So'):
 				sg = FreeCADGui.ActiveDocument.ActiveView.getSceneGraph()
 				sg.addChild(r)
 
-		print "Data ..."
+		print("Data ...")
 		for ob in self.objects:
-			print ob
+			print(ob)
 
-		print self.anchors
+		print(self.anchors)
 
 		for r in self.roots():
-			print r
+			print(r)
 
 ################
 

@@ -159,7 +159,7 @@ def runw(window):
 	#border offset
 	try: r=int(window.off.text())
 	except:
-		print "cannot convert offset value"
+		print("cannot convert offset value")
 		window.off.setText('0')
 		r=0
 
@@ -230,8 +230,8 @@ def runw(window):
 	obj2.ViewObject.ShapeMaterial.DiffuseColor=(0.0,0.0,0.0,0.0)
 	obj2.ViewObject.ShapeMaterial.EmissiveColor=(.0,1.0,1.0,1.)
 
-	print "colors"
-	print  obj3.ViewObject.ShapeMaterial.DiffuseColor
+	print("colors")
+	print(obj3.ViewObject.ShapeMaterial.DiffuseColor)
 
 
 
@@ -254,9 +254,9 @@ def runw(window):
 def run2(window):
 
 	anz=int(window.anz.text())
-	print anz
+	print(anz)
 
-	print window.r.isChecked()
+	print(window.r.isChecked())
 
 	window.r.hide()
 	window.hide()

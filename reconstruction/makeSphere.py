@@ -84,17 +84,17 @@ def run():
 		sels += subs
 	subs=sels
 	for ss in subs:
-		print ss
-	if len(subs)<>4:
+		print(ss)
+	if len(subs)!=4:
 		raise Exception("keine vier kanten")
 	l=[]
 	for e in s.SubObjects: 
-		if e.__class__.__name__ <>'Vertex':
+		if e.__class__.__name__ !='Vertex':
 			raise Exception ("Non edge in selection" + str(e))
-		print e.Point
+		print(e.Point)
 		l.append(e.Point)
 	[p1,p2,p3,p4]=l
-	print s.SubObjects
+	print(s.SubObjects)
 
 	makeSphere(p1,p2,p3,p4)
 

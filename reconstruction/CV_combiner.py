@@ -19,18 +19,19 @@ from PySide import QtCore, QtGui
 
 import FreeCAD,FreeCADGui
 
-import cv2
+from . import cv2
 import numpy as np
 
 
 import reconstruction
-reload (reconstruction.projectiontools)
+import importlib
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 from reconstruction.CV import _CV, _ViewProviderCV, createCV
-reload(reconstruction.CV )
+importlib.reload(reconstruction.CV )
 
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 
 class _CV_combiner(_CV):
@@ -61,7 +62,7 @@ class _ViewProviderCV_combiner(_ViewProviderCV):
 		
 		res=None
 		for t in obj.OutList:
-			print t.Label
+			print(t.Label)
 			img=t.ViewObject.Proxy.img.copy()
 			if res==None:
 				res=img.copy()
@@ -71,8 +72,8 @@ class _ViewProviderCV_combiner(_ViewProviderCV):
 				
 				aw=0.0+float(obj.aWeight)/100
 				bw=0.0+float(obj.bWeight)/100
-				print aw
-				print bw
+				print(aw)
+				print(bw)
 				if obj.aInverse:
 					# b umsetzen
 					ret, mask = cv2.threshold(img, 50, 255, cv2.THRESH_BINARY)
@@ -187,7 +188,7 @@ class MyApp(object):
 		self.obj.Proxy.execute(self.obj)
 
 	def change(self):
-		print "changed"
+		print("changed")
 		self.obj.k=self.root.ids['k'].value()
 		self.obj.ksize=self.root.ids['ksize'].value()
 		self.obj.blockSize=self.root.ids['blockSize'].value()
@@ -200,7 +201,7 @@ class MyApp(object):
 
 
 def createCV_combiner():
-	print "create CV  combiner ... 2"
+	print("create CV  combiner ... 2")
 	obj= createCV(True)
 	obj.Label='Combiner'
 

@@ -19,6 +19,7 @@ from PySide import QtCore, QtGui
 
 
 import FreeCAD,FreeCADGui
+import importlib
 App=FreeCAD
 Gui=FreeCADGui
 
@@ -30,7 +31,7 @@ from reconstruction.CV import _CV, _ViewProviderCV
 
 
 
-import cv2
+from . import cv2
 import numpy as np
 
 import time
@@ -38,7 +39,7 @@ import time
 class _CV_demo(_CV):
 
 	def __init__(self,obj,icon='/icons/animation.png'):
-		print "init cv demo "
+		print("init cv demo ")
 		obj.Proxy = self
 		self.Type = self.__class__.__name__
 		self.obj2 = obj
@@ -117,9 +118,9 @@ class _CV_demo(_CV):
 class _ViewProviderCV_demo(_ViewProviderCV):
  
 	def __init__(self,vobj,icon='/icons/icon1.svg'):
-		print "view provider emo startet"
+		print("view provider emo startet")
 		self.iconpath = icon
-		print self.iconpath
+		print(self.iconpath)
 		self.Object = vobj.Object
 		self.cmenu=[]
 		self.emenu=[]
@@ -150,7 +151,7 @@ class _ViewProviderCV_demo(_ViewProviderCV):
 
 	def edit(self):
 		anims=self.anims()
-		print anims
+		print(anims)
 		self.dialog=EditWidget(self,self.emenu + anims,False)
 		self.dialog.show()
 		self.animpingpong()
@@ -161,12 +162,12 @@ class _ViewProviderCV_demo(_ViewProviderCV):
 		if not obj.imageFromNode:
 			img = cv2.imread(obj.imageFile)
 		else:
-			print "copy image ..."
+			print("copy image ...")
 			img = obj.imageNode.ViewObject.Proxy.img.copy()
-			print "cpied"
+			print("cpied")
 		
-		print " loaded"
-		print (obj.blockSize,obj.ksize,obj.k)
+		print(" loaded")
+		print((obj.blockSize,obj.ksize,obj.k))
 		gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 		gray = np.float32(gray)
 		# dst = cv2.cornerHarris(gray,3,3,0.00001)
@@ -174,9 +175,9 @@ class _ViewProviderCV_demo(_ViewProviderCV):
 		dst = cv2.dilate(dst,None)
 		img[dst>0.01*dst.max()]=[0,0,255]
 		if True:
-			print "zeige"
+			print("zeige")
 			cv2.imshow(obj.Label,img)
-			print "gezeigt"
+			print("gezeigt")
 		else:
 			from matplotlib import pyplot as plt
 			plt.subplot(121),plt.imshow(img,cmap = 'gray')
@@ -184,16 +185,16 @@ class _ViewProviderCV_demo(_ViewProviderCV):
 			plt.subplot(122),plt.imshow(dst,cmap = 'gray')
 			plt.title('Corner Image'), plt.xticks([]), plt.yticks([])
 			plt.show()
-		print "fertig"
+		print("fertig")
 		self.img=img
 
 
 import reconstruction
-reload (reconstruction.projectiontools)
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 class MyApp(object):
 
@@ -227,12 +228,12 @@ VerticalLayout:
 '''
 
 	def create(self):
-		print "my app was running"
-		print self.obj
+		print("my app was running")
+		print(self.obj)
 
 
 def createCV_demo():
-	print "create CV  demo ..."
+	print("create CV  demo ...")
 	obj=FreeCAD.ActiveDocument.addObject('App::DocumentObjectGroupPython','Image')
 	obj.addProperty('App::PropertyFile','imageFile',"base").imageFile='/home/thomas/Bilder/c1.png'
 	obj.addProperty('App::PropertyLink','imageNode',"base")

@@ -47,7 +47,7 @@ def sayW(s):
 
 
 def errorDialog(msg):
-    diag = QtGui.QMessageBox(QtGui.QMessageBox.Critical,u"Error Message",msg )
+    diag = QtGui.QMessageBox(QtGui.QMessageBox.Critical,"Error Message",msg )
     diag.setWindowFlags(PySide.QtCore.Qt.WindowStaysOnTopHint)
     diag.exec_()
 

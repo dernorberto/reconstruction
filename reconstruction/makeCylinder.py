@@ -44,8 +44,8 @@ def makeCylinder(p1,p2,p3,p4):
 	t=sympy.Triangle(sp1,sp2,sp3)
 	rad=t.circumradius.evalf()
 	center=t.circumcenter
-	print rad
-	print center
+	print(rad)
+	print(center)
 	x=center.x.evalf()
 	y=center.y.evalf()
 
@@ -84,21 +84,21 @@ def run():
 	sels=[]
 	for s in Gui.Selection.getSelectionEx():
 		subs=s.SubObjects
-		print subs
+		print(subs)
 		sels += subs
 	subs=sels
 	for ss in subs:
-		print ss
-	if len(subs)<>4:
+		print(ss)
+	if len(subs)!=4:
 		raise Exception("keine vier kanten")
 	l=[]
 	for e in s.SubObjects: 
-		if e.__class__.__name__ <>'Vertex':
+		if e.__class__.__name__ !='Vertex':
 			raise Exception ("Non edge in selection" + str(e))
-		print e.Point
+		print(e.Point)
 		l.append(e.Point)
 	[p1,p2,p3,p4]=l
-	print s.SubObjects
+	print(s.SubObjects)
 	makeCylinder(p1,p2,p3,p4)
 
 # run()

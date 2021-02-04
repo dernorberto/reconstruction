@@ -15,7 +15,7 @@ import random
 from pivy import coin
 import time
 
-import cv2
+from . import cv2
 import numpy as np
 import scipy
 import scipy.cluster
@@ -56,7 +56,7 @@ def showborders(shx):
 		#plines.append(Part.makePolygon(FreeCAD.Vector(),p1+d]))
 
 		alpha=np.arctan2(x2-x1,y2-y1)
-		print (round(d.Length,1),round(alpha/np.pi*180,1))
+		print((round(d.Length,1),round(alpha/np.pi*180,1)))
 		dl.append(d.Length)
 		al.append(alpha)
 
@@ -105,7 +105,7 @@ def showborders(shx):
 
 	for pp in [0,0,1]:
 		for cn in range(cs):
-			print ("cn",cn)
+			print(("cn",cn))
 			xxs=[]
 			yys=[]
 			tns=[]
@@ -114,7 +114,7 @@ def showborders(shx):
 				if not goodlines[i]: continue
 				if c==cn:
 					#print data[i]
-					print (lines[i],data[i,1],data[i,0])
+					print((lines[i],data[i,1],data[i,0]))
 					x1,y1,x2,y2=lines[i]
 					#print (np.tan(data[i,1]),(0.0+x1-x2)/(y1-y2))
 					xxs += [x1,x2]
@@ -126,10 +126,10 @@ def showborders(shx):
 			ym=sum(yys)/l
 			dm=sum(tns)/len(tns)
 			for i in lls:
-				print ("------",i,data[i,1]-dm)
+				print(("------",i,data[i,1]-dm))
 				if abs(data[i,1]-dm)>0.5:
 					goodlines[i]=0
-			print (xm,ym,dm)
+			print((xm,ym,dm))
 			if pp:
 				b=FreeCAD.Vector(xm,-ym+shx,20)
 				bd=FreeCAD.Vector(1000*np.sin(dm),-1000*np.cos(dm),20)
@@ -146,8 +146,8 @@ def showborders(shx):
 
 def genpics(w=None,fn=None):
 
-	if w <>None:
-		print "genpics ..."
+	if w !=None:
+		print("genpics ...")
 		lo=w.th1.value()
 		up=w.th2.value()
 		fn=w.fn
@@ -161,7 +161,7 @@ def genpics(w=None,fn=None):
 	if lo>up: lo,up=up,lo
 
 	# graubild
-	print ("fn",fn)
+	print(("fn",fn))
 	imgg = cv2.imread(fn,0)
 	imgg.shape
 
@@ -230,7 +230,7 @@ def genpics(w=None,fn=None):
 	#cv2.imshow('b2',b2)
 	#cv2.imwrite('/tmp/b2.png',b2)
 
-	if w<>None:
+	if w!=None:
 		fn='/tmp/b.png'
 		myPixmap = QtGui.QPixmap(fn)
 		w.lb.setPixmap(myPixmap)
@@ -261,7 +261,7 @@ def genpics(w=None,fn=None):
 		fn='/tmp/result.png'
 		myPixmap = QtGui.QPixmap(fn)
 		w.result.setPixmap(myPixmap)
-		print "done"
+		print("done")
 
 
 
@@ -291,11 +291,11 @@ def RayIntersection(p0, d0, p1, d1):
 		s = ((a * -d) + (e * b)) / ((c * -d) + e**2)
 		t = (b - s*e)/-d
 	except:
-		print "Schnittpunkt fehler fuer"
-		print p0
-		print d0
-		print p1
-		print d1
+		print("Schnittpunkt fehler fuer")
+		print(p0)
+		print(d0)
+		print(p1)
+		print(d1)
 		return None
 
 #	print (p0 + s*d0 - (p1 + t*d1))
@@ -315,12 +315,12 @@ print res
 
 
 def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
-	import cv2
+	from . import cv2
 	import numpy as np
 	fn=FreeCAD.ParamGet('User parameter:Plugins/reconstruction').GetString("Document")
-	print ("genresult",fn)
-	fcupd=w<>None and w.computef.isChecked()
-	debug=w<>None and w.debugf.isChecked()
+	print(("genresult",fn))
+	fcupd=w!=None and w.computef.isChecked()
+	debug=w!=None and w.debugf.isChecked()
 	
 	'''
 	fn='/home/thomas/Dokumente/freecad_buch/b244_perspective_transform.py/Prozessmodell.jpg'
@@ -338,7 +338,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 	hsv = cv2.cvtColor(imgr, cv2.COLOR_BGR2HSV)
 
 
-	print imgr.shape
+	print(imgr.shape)
 	shx,shy,_t= imgr.shape
 	# img ist sw
 
@@ -346,7 +346,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 	if debug: cv2.imshow("image",im3)
 
 
-	print ("berechne img2 nach mode",mode)
+	print(("berechne img2 nach mode",mode))
 	# schwellwert 110
 	img2=img
 	
@@ -372,7 +372,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 
 
 	edges = cv2.Canny(closing,100,200)
-	print ("size edges",edges.shape)
+	print(("size edges",edges.shape))
 
 	t=np.where(edges == 255)      
 
@@ -380,7 +380,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 	for i in range(len(t[0])):
 		pts.append(FreeCAD.Vector(t[0][i],t[1][i],0))
 
-	print "hah"
+	print("hah")
 	edges2 = cv2.cvtColor(edges,cv2.COLOR_GRAY2RGB)
 	edges2 *= 0
 
@@ -388,8 +388,8 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 	lines = cv2.HoughLinesP(edges,1,np.pi/180,100, minLineLength = 20, maxLineGap = 20)[0]
 
 
-	if lines<>None:
-		print "huhu"
+	if lines!=None:
+		print("huhu")
 #		print lines
 		FreeCAD.ll=np.array(lines)
 		ll=np.array(lines).swapaxes(0,1)
@@ -405,7 +405,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 			cv2.line(imgr,(x1,y1),(x2,y2),(0,255,255,255),15)
 			cv2.line(imgr,(x1,y1),(x2,y2),(0,0,255,255),5)
 
-		print "directionsa "
+		print("directionsa ")
 		dirs=[]
 		plines=[]
 		xm=0
@@ -419,7 +419,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 #			pts += [FreeCAD.Vector(x,y,0),FreeCAD.Vector(x+y,y-x,0)]
 			d=FreeCAD.Vector().projectToLine(p1+1000000*(p2-p1),p2+1000000*(p1-p2))
 			alpha=np.arctan2(x2-x1,y2-y1)
-			print (round(d.Length,1),round(alpha/np.pi*180,1))
+			print((round(d.Length,1),round(alpha/np.pi*180,1)))
 			#d.normalize()
 			#print (d.normalize(),(p1-p2).normalize())
 			dirs.append([round(d.Length,1),round(alpha/np.pi*180,1)])
@@ -433,10 +433,10 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 			App.ActiveDocument.ActiveObject.Label="dir 345 obhj"
 			App.ActiveDocument.ActiveObject.ViewObject.LineColor=(1.0,0.,0.)
 
-	print "b"
+	print("b")
 
 	# schnittpunkte berechnen
-	if lines<>None:
+	if lines!=None:
 		maxx,maxy=img.shape
 		apts=[FreeCAD.Vector(x1,y1,0) for x1,y1,x2,y2 in lines]
 		dirs=[FreeCAD.Vector(x2-x1,y2-y1,0) for x1,y1,x2,y2 in lines]
@@ -445,10 +445,10 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 		for i,h in enumerate(apts):
 			for j in range(i):
 				p=RayIntersection(apts[i], dirs[i], apts[j], dirs[j])
-				if p<>None:
+				if p!=None:
 					if p.x>-maxx and p.x<2*maxx and  p.y>-maxy and p.y<2*maxy:
 						ptsq.append(FreeCAD.Vector(p[0],1500-p[1],0))
-						print p
+						print(p)
 
 		import Points
 		FreeCAD.ptsq=ptsq
@@ -457,7 +457,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 			App.ActiveDocument.ActiveObject.ViewObject.ShapeColor=(1.0,0.,0.)
 			App.ActiveDocument.ActiveObject.ViewObject.PointSize=5
 
-		print "hone"
+		print("hone")
 
 
 		# define criteria and apply kmeans()
@@ -485,12 +485,12 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 		for i,p in enumerate(ptsq):
 			ds=0
 			for j,q in enumerate(ptsq):
-				if i<>j:
+				if i!=j:
 					ds += 1.0/(1+(p-q).Length)
-			print ds
+			print(ds)
 			dist[i]=ds
 
-		vs=dist.values()
+		vs=list(dist.values())
 		vs.sort()
 
 
@@ -512,7 +512,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 	cv2.imwrite('/tmp/result.png',imgr)
 
 
-	if w<>None and w.computef.isChecked():
+	if w!=None and w.computef.isChecked():
 		showborders(shx)
 
 	return
@@ -533,7 +533,7 @@ def genresult(w=None,fn='/home/thomas/Bilder/bp_325.png',s=150,mode='grey'):
 
 def mode(w,m):
 	w.mode=m
-	print ("mode",w.mode,w.fn)
+	print(("mode",w.mode,w.fn))
 	genpics(w)
 
 
@@ -690,7 +690,7 @@ def dialog(fn):
 #	fn='/home/thomas/Bilder/bp_338.png'
 	fn=w.fn
 	myPixmap = QtGui.QPixmap(fn)
-	print label.size()
+	print(label.size())
 	myScaledPixmap = myPixmap.scaled(label.size())#, Qt.KeepAspectRatio)
 	#myScaledPixmap = myPixmap.scaled(PySide.QtCore.QSize(gx,gy))#, Qt.KeepAspectRatio)
 	label.setPixmap(myScaledPixmap)

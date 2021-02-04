@@ -19,18 +19,19 @@ from PySide import QtCore, QtGui
 
 import FreeCAD,FreeCADGui
 
-import cv2
+from . import cv2
 import numpy as np
 
 
 import reconstruction
-reload (reconstruction.projectiontools)
+import importlib
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 from reconstruction.CV import _CV, _ViewProviderCV, createCV
-reload(reconstruction.CV )
+importlib.reload(reconstruction.CV )
 
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 
 class _CV_cornerharris(_CV):
@@ -64,15 +65,15 @@ class _ViewProviderCV_cornerharris(_ViewProviderCV):
 		else:
 			img = obj.imageNode.ViewObject.Proxy.img.copy()
 
-		print (obj.blockSize,obj.ksize,obj.k)
+		print((obj.blockSize,obj.ksize,obj.k))
 		try:
 			gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 			gray = np.float32(gray)
-			print "normale"
+			print("normale")
 		except:
 			im2=cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
 			gray = cv2.cvtColor(im2,cv2.COLOR_RGB2GRAY)
-			print "except"
+			print("except")
 
 		dst = cv2.cornerHarris(gray,obj.blockSize,obj.ksize*2+1,obj.k/10000)
 		dst = cv2.dilate(dst,None)
@@ -163,7 +164,7 @@ class MyApp(object):
 		self.obj.Proxy.execute(self.obj)
 
 	def change(self):
-		print "changed"
+		print("changed")
 		self.obj.k=self.root.ids['k'].value()
 		self.obj.ksize=self.root.ids['ksize'].value()
 		self.obj.blockSize=self.root.ids['blockSize'].value()
@@ -176,7 +177,7 @@ class MyApp(object):
 
 
 def createCV_cornerharris():
-	print "create CV  cornerharris ... 2"
+	print("create CV  cornerharris ... 2")
 	obj= createCV(True)
 	obj.Label='Harris'
 

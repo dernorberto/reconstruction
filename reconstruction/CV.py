@@ -19,6 +19,7 @@ from PySide import QtCore, QtGui
 
 
 import FreeCAD,FreeCADGui
+import importlib
 App=FreeCAD
 Gui=FreeCADGui
 
@@ -78,7 +79,7 @@ class EditNoDialWidget(_EditWidget):
 #-----------------------------------------------------
 
 
-import cv2
+from . import cv2
 import numpy as np
 
 import time
@@ -151,9 +152,9 @@ class _CV(object):
 class _ViewProviderCV():
  
 	def __init__(self,vobj,icon='/icons/icon1.svg'):
-		print "viewwproergrger"
+		print("viewwproergrger")
 		self.iconpath = icon
-		print self.iconpath
+		print(self.iconpath)
 		self.Object = vobj.Object
 		vobj.Proxy = self
 		self.cmenu=[]
@@ -192,7 +193,7 @@ class _ViewProviderCV():
 
 	def edit(self):
 		anims=self.anims()
-		print anims
+		print(anims)
 		self.dialog=EditWidget(self,self.emenu + anims,False)
 		self.dialog.show()
 
@@ -233,9 +234,9 @@ class _ViewProviderCV():
 			time.sleep(0.02)
 
 	def animpingpong(self):
-		print self
-		print self.Object
-		print self.Object.Name
+		print(self)
+		print(self.Object)
+		print(self.Object.Name)
 		obj=self.Object
 		img = cv2.imread(obj.imageFile)
 		gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -253,11 +254,11 @@ class _ViewProviderCV():
 
 
 import reconstruction
-reload (reconstruction.projectiontools)
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 class MyApp(object):
 
@@ -291,12 +292,12 @@ VerticalLayout:
 '''
 
 	def create(self):
-		print "my app was running"
-		print self.obj
+		print("my app was running")
+		print(self.obj)
 
 
 def createCV(base=False):
-	print "create CV ..."
+	print("create CV ...")
 	obj=FreeCAD.ActiveDocument.addObject('App::DocumentObjectGroupPython','Image')
 
 	obj.addProperty('App::PropertyFile','imageFile',"base").imageFile='/home/thomas/Bilder/c1.png'

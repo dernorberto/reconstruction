@@ -7,12 +7,13 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-from say import *
+from .say import *
 
-import cv2
+from . import cv2
 
 import reconstruction.mpl
-reload(reconstruction.mpl)
+import importlib
+importlib.reload(reconstruction.mpl)
 
 
 # import cProfile
@@ -69,7 +70,7 @@ def run(ed,cimg,ed2,showPics=True):
 				ed2[x,y]=ix*40
 			else:
 				ed2[x,y]=255
-	print counts
+	print(counts)
 
 	if showPics: cv2.imshow('context image',cimg)
 
@@ -220,7 +221,7 @@ class PathFinder():
 				[xl,yl]=xylist(pa)
 				yl=np.array(yl)
 				mplw.plot(xl,-yl)
-				print [i,len(pa)]
+				print([i,len(pa)])
 				pl2.append(pa)
 
 		mplw.show()
@@ -231,7 +232,7 @@ class PathFinder():
 			sels += 1
 			t=part(pa,i)
 
-		print (len(pl)," pathes found", sels," pathes selected")
+		print((len(pl)," pathes found", sels," pathes selected"))
 
 		Gui.SendMsgToActiveView("ViewFit")
 		Gui.activeDocument().activeView().viewBottom()

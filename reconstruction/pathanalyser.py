@@ -7,10 +7,11 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-from say import *
+from .say import *
 
 import reconstruction.mpl
-reload(reconstruction.mpl)
+import importlib
+importlib.reload(reconstruction.mpl)
 
 
 def computeDirection(p,N,x,y):
@@ -24,7 +25,7 @@ def computeDirection(p,N,x,y):
 		dirl.append(dir)
 
 	# approximation by a line
-	[krumm,richtung] = np.polyfit(range(N), dirl, 1)
+	[krumm,richtung] = np.polyfit(list(range(N)), dirl, 1)
 	pp = np.poly1d([krumm,richtung])
 
 	# quality of the approx
@@ -42,8 +43,8 @@ def computeDirection(p,N,x,y):
 def splitpath(mplw,N,x,y,tresh=0.004,plotit=False):
 	''' split a path into intervals on strong changes of the direction and generate a plot of the data'''
 
-	iv0=range(len(x))
-	iv=range(N,len(x)-N)
+	iv0=list(range(len(x)))
+	iv=list(range(N,len(x)-N))
 	s=[0]*N; s2=[0]*N
 
 	intervals=[0]
@@ -89,7 +90,7 @@ def splitpath(mplw,N,x,y,tresh=0.004,plotit=False):
 def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 	''' draw the intervals in the plot widget'''
 
-	if obj <> None:
+	if obj != None:
 		hideApprox=obj.hideApproximation
 		hideLegend=obj.hideLegend
 		maxRadius=obj.maxRadius
@@ -107,7 +108,7 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 		# intervals must be long enough
 		if intervals[l] +N < intervals[1+l]:
 			dd=dirs[intervals[l]:intervals[1+l]]
-			ra=range(intervals[l],intervals[l]+len(dd))
+			ra=list(range(intervals[l],intervals[l]+len(dd)))
 
 			# plot the raw data
 			if not hideApprox:
@@ -115,7 +116,7 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 			else:
 				mplw.plot(ra,dd,'x')
 
-			if ra[N:-N-N] <>[]:
+			if ra[N:-N-N] !=[]:
 				z = np.polyfit(ra[N:-N-N],dd[N:-N-N], 1)
 				z = np.polyfit(ra[N+3:-N-N+3],dd[N+3:-N-N+3], 1)
 				arc1=np.pi+z[1]
@@ -140,9 +141,9 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 				else:
 					radius=0
 
-				print
-				print ("loop",l,"startpoint",intervals[l],"endpoint",intervals[1+l],"point count:",len1)
-				print ("curvature ",bending,"direction:",arc,"radius ", radius)
+				print()
+				print(("loop",l,"startpoint",intervals[l],"endpoint",intervals[1+l],"point count:",len1))
+				print(("curvature ",bending,"direction:",arc,"radius ", radius))
 
 				x1=x[intervals[l]-N]; x2=x[intervals[1+l]]
 				y1=y[intervals[l]-N]; y2=y[intervals[1+l]]
@@ -157,7 +158,7 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 				if abs(radius)>maxRadius or radius==0:
 
 					#direction of the line
-					if l<>0 and abs(arc)>2:
+					if l!=0 and abs(arc)>2:
 						zd = np.polyfit(x[intervals[l]-N//2:intervals[1+l]+N//2],y[intervals[l]-N//2:intervals[1+l]+N//2], 1)
 						zd = np.polyfit(x[intervals[l]:intervals[1+l]],y[intervals[l]:intervals[1+l]], 1)
 						m=zd[0]
@@ -178,8 +179,8 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 						zz=0
 						zz=-2*l
 						points=[FreeCAD.Vector(mx-0.5*d*np.cos(am),my-0.5*d*np.sin(am),zz),FreeCAD.Vector(mx+0.5*d*np.cos(am),my+0.5*d*np.sin(am),zz)]
-						print "create Line"
-						print points
+						print("create Line")
+						print(points)
 						Draft.makeWire(points,closed=False,face=True,support=None)
 						App.ActiveDocument.ActiveObject.ViewObject.LineWidth=7.0
 						App.ActiveDocument.ActiveObject.ViewObject.LineColor=(.0,0.0,1.0)
@@ -210,7 +211,7 @@ def showIntervals(mplw,N,intervals,dirs,x,y,createFC,obj=None):
 					dir2=np.arctan2(dy,dx)
 					dir2=90.0- dir2*180/np.pi
 					
-					print("l",l,"coord", x1,y1,x2,y2,"dist points ",d, " dir2:",round(dir2,1))
+					print(("l",l,"coord", x1,y1,x2,y2,"dist points ",d, " dir2:",round(dir2,1)))
 					
 					x1=x[intervals[l]-N//2]
 					x2=x[intervals[1+l]+N//2]
@@ -254,7 +255,7 @@ def run(pl2,nr,N,threshold,mplw=None,createFC=False,obj=None):
 	mplw.subplot()
 
 	# prepare data rows for x,y
-	print (nr,len(pl2))
+	print((nr,len(pl2)))
 	path=pl2[nr]
 	x=[p[0] for p in path]
 	y=[p[1] for p in path]

@@ -5,7 +5,7 @@
 
 import FreeCAD,FreeCADGui
 Gui=FreeCADGui
-FreeCAD.open(u"/home/thomas/Dokumente/freecad_buch/b204_pcl/wires3.fcstd")
+FreeCAD.open("/home/thomas/Dokumente/freecad_buch/b204_pcl/wires3.fcstd")
 App.setActiveDocument("wires3")
 App.ActiveDocument=App.getDocument("wires3")
 Gui.ActiveDocument=Gui.getDocument("wires3")

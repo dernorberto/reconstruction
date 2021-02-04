@@ -83,7 +83,7 @@ def createPointset(grid,extend):
 	pts=[]
 	for ix in range(grid.shape[0]):
 		for iy in range(grid.shape[1]):
-			if not np.isnan(grid[ix,iy]) and grid[ix,iy]<>0:
+			if not np.isnan(grid[ix,iy]) and grid[ix,iy]!=0:
 				pts.append(FreeCAD.Vector(xmin+(0.0+(xmax-xmin)*ix)/kx,ymin+(0.0+(ymax-ymin)*iy)/ky,grid[ix,iy]))
 
 	pout=Points.Points(pts)
@@ -148,19 +148,19 @@ def run_transform2(composer):
 	extend=(int(composer.minBoundBox.x),int(composer.maxBoundBox.x),
 		int(composer.minBoundBox.y),int(composer.maxBoundBox.y))
 
-	if composer.pointcloudA<>None:
+	if composer.pointcloudA!=None:
 		ya=np.array([p.x for p in composer.pointcloudA.Points.Points])
 		xa=np.array([p.y for p in composer.pointcloudA.Points.Points])
 		za=np.array([p.z for p in composer.pointcloudA.Points.Points])
 		A=getGriddata(xa,ya,za,extend)
 
-	if composer.pointcloudB<>None:
+	if composer.pointcloudB!=None:
 		ya=np.array([p.x for p in composer.pointcloudB.Points.Points])
 		xa=np.array([p.y for p in composer.pointcloudB.Points.Points])
 		za=np.array([p.z for p in composer.pointcloudB.Points.Points])
 		B=getGriddata(xa,ya,za,extend)
 
-	if composer.pointcloudC<>None:
+	if composer.pointcloudC!=None:
 		xa=np.array([p.x for p in composer.pointcloudC.Points.Points])
 		ya=np.array([p.y for p in composer.pointcloudC.Points.Points])
 		za=np.array([p.z for p in composer.pointcloudC.Points.Points])
@@ -244,7 +244,7 @@ class MyApp(object):
 		self.ob=_createPerspective()
 
 	def recomputePointCloud(self):
-		print "recompute cloud ...."
+		print("recompute cloud ....")
 
 	def close(self):
 		pass

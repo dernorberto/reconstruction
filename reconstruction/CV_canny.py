@@ -12,6 +12,7 @@ __vers__="13.03.2016  0.0"
 
 
 import os
+import importlib
 
 __dir__ = os.path.dirname(__file__)
 
@@ -34,7 +35,7 @@ from reconstruction.CV import _CV, _ViewProviderCV
 
 
 
-import cv2
+from . import cv2
 import numpy as np
 
 import time
@@ -42,7 +43,7 @@ import time
 class _CV_canny(_CV):
 
 	def __init__(self,obj,icon='/icons/animation.png'):
-		print "init cv canny "
+		print("init cv canny ")
 		obj.Proxy = self
 		self.Type = self.__class__.__name__
 		self.obj2 = obj
@@ -121,9 +122,9 @@ class _CV_canny(_CV):
 class _ViewProviderCV_canny(_ViewProviderCV):
  
 	def __init__(self,vobj,icon='/icons/icon1.svg'):
-		print "view provider emo startet"
+		print("view provider emo startet")
 		self.iconpath = icon
-		print self.iconpath
+		print(self.iconpath)
 		self.Object = vobj.Object
 		self.cmenu=[]
 		self.emenu=[]
@@ -154,7 +155,7 @@ class _ViewProviderCV_canny(_ViewProviderCV):
 
 	def edit(self):
 		anims=self.anims()
-		print anims
+		print(anims)
 		self.dialog=EditWidget(self,self.emenu + anims,False)
 		self.dialog.show()
 		self.animpingpong()
@@ -165,11 +166,11 @@ class _ViewProviderCV_canny(_ViewProviderCV):
 		if not obj.imageFromNode:
 			img = cv2.imread(obj.imageFile)
 		else:
-			print "copy image ..."
+			print("copy image ...")
 			img = obj.imageNode.ViewObject.Proxy.img.copy()
-			print "cpied"
+			print("cpied")
 		
-		print " loaded"
+		print(" loaded")
 		
 		# print (obj.blockSize,obj.ksize,obj.k)
 		edges = cv2.Canny(img,obj.minVal,obj.maxVal)
@@ -177,9 +178,9 @@ class _ViewProviderCV_canny(_ViewProviderCV):
 		edges=color
 
 		if True:
-			print "zeige"
+			print("zeige")
 			cv2.imshow(obj.Label,edges)
-			print "gezeigt"
+			print("gezeigt")
 		else:
 			from matplotlib import pyplot as plt
 			plt.subplot(121),plt.imshow(img,cmap = 'gray')
@@ -187,16 +188,16 @@ class _ViewProviderCV_canny(_ViewProviderCV):
 			plt.subplot(122),plt.imshow(dst,cmap = 'gray')
 			plt.title('Corner Image'), plt.xticks([]), plt.yticks([])
 			plt.show()
-		print "fertig"
+		print("fertig")
 		self.img=edges
 
 
 import reconstruction
-reload (reconstruction.projectiontools)
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 class MyApp(object):
 
@@ -252,8 +253,8 @@ VerticalLayout:
 '''
 
 	def create(self):
-		print "my app was running"
-		print self.obj
+		print("my app was running")
+		print(self.obj)
 		self.obj.Proxy.execute(self.obj)
 
 
@@ -267,7 +268,7 @@ VerticalLayout:
 
 
 def createCV_canny():
-	print "create CV  canny ..."
+	print("create CV  canny ...")
 	obj=FreeCAD.ActiveDocument.addObject('App::DocumentObjectGroupPython','Canny')
 	obj.addProperty('App::PropertyFile','imageFile',"base").imageFile='/home/thomas/Bilder/bn_900.png'
 	obj.addProperty('App::PropertyLink','imageNode',"base")

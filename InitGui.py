@@ -26,6 +26,7 @@ __author__ = "Thomas Gundermann"
 __url__ = "http://www.freecadbuch.de"
 
 import FreeCAD, FreeCADGui
+import importlib
 
 windowCreated = 0
 
@@ -35,8 +36,8 @@ class nurbsEditor:
 	def Activated(self):
 		FreeCAD.Console.PrintMessage("run  ... ")
 		import reconstruction.nurbs
-		reload(reconstruction.nurbs)
-		print "okay"
+		importlib.reload(reconstruction.nurbs)
+		print("okay")
 		reconstruction.nurbs.createnurbs()
 
 
@@ -78,8 +79,8 @@ class pointcloudComposer:
 	def Activated(self):
 		FreeCAD.Console.PrintMessage("run  ... ")
 		import reconstruction.pointcloud_composer
-		reload(reconstruction.pointcloud_composer)
-		print "okay"
+		importlib.reload(reconstruction.pointcloud_composer)
+		print("okay")
 		reconstruction.pointcloud_composer.run()
 
 
@@ -98,8 +99,8 @@ class mydialog:
 	def Activated(self):
 		FreeCAD.Console.PrintMessage("run  ... ")
 		import reconstruction.create_perspective_tool
-		reload(reconstruction.create_perspective_tool)
-		print "okay"
+		importlib.reload(reconstruction.create_perspective_tool)
+		print("okay")
 		reconstruction.create_perspective_tool.run()
 
 
@@ -115,10 +116,10 @@ FreeCADGui.addCommand('Import Image', mydialog())
 class houghlines:
 
 	def Activated(self):
-		print "run import ..."
+		print("run import ...")
 		import reconstruction.houghlines
-		reload(reconstruction.houghlines)
-		print "okay"
+		importlib.reload(reconstruction.houghlines)
+		print("okay")
 		reconstruction.houghlines.run()
 
 	def GetResources(self):
@@ -134,10 +135,10 @@ FreeCADGui.addCommand('houghlines', houghlines())
 class makeSphere:
 
 	def Activated(self):
-		print "run import ..."
+		print("run import ...")
 		import reconstruction.makeSphere
-		reload(reconstruction.makeSphere)
-		print "okay"
+		importlib.reload(reconstruction.makeSphere)
+		print("okay")
 		reconstruction.makeSphere.run()
 
 	def GetResources(self):
@@ -152,10 +153,10 @@ FreeCADGui.addCommand('makeSphere', makeSphere())
 class makeCylinder:
 
 	def Activated(self):
-		print "run import ..."
+		print("run import ...")
 		import reconstruction.makeCylinder
-		reload(reconstruction.makeCylinder)
-		print "okay"
+		importlib.reload(reconstruction.makeCylinder)
+		print("okay")
 		reconstruction.makeCylinder.run()
 
 	def GetResources(self):
@@ -171,10 +172,10 @@ FreeCADGui.addCommand('makeCylinder', makeCylinder())
 class makePlane:
 
 	def Activated(self):
-		print "run import ..."
+		print("run import ...")
 		import reconstruction.makePlane
-		reload(reconstruction.makePlane)
-		print "okay"
+		importlib.reload(reconstruction.makePlane)
+		print("okay")
 		reconstruction.makePlane.run()
 
 	def GetResources(self):
@@ -190,10 +191,10 @@ FreeCADGui.addCommand('makePlane', makePlane())
 class makePrism:
 
 	def Activated(self):
-		print "run import ..."
+		print("run import ...")
 		import reconstruction.makePrism
-		reload(reconstruction.makePrism)
-		print "okay"
+		importlib.reload(reconstruction.makePrism)
+		print("okay")
 		reconstruction.makePrism.run()
 
 	def GetResources(self):
@@ -209,10 +210,10 @@ FreeCADGui.addCommand('makePrism', makePrism())
 class makeCVX:
 
 	def Activated(self):
-		print "run import ..."
+		print("run import ...")
 		import reconstruction.CV
-		reload(reconstruction.CV)
-		print "okay"
+		importlib.reload(reconstruction.CV)
+		print("okay")
 		reconstruction.CV.createCV()
 
 	def GetResources(self):
@@ -251,10 +252,10 @@ class makeCV_master:
 
 	def Activated(self):
 		s="reconstruction." + self.classname
-		print "run import ..." + s
+		print("run import ..." + s)
 		t=runme(s)
-		print t.Label
-		print  s + " done, okay"
+		print(t.Label)
+		print(s + " done, okay")
 
 	def GetResources(self):
 		return {
@@ -273,7 +274,7 @@ def createcmd(cmd='CV',pixmap='Std_Tool1',menutext=None,tooltip=None):
 
 def runme2(s):
 	import reconstruction.CV2
-	reload(reconstruction.CV2)
+	importlib.reload(reconstruction.CV2)
 	t2=reconstruction.CV2.createCV(s)
 	return t2
 
@@ -304,10 +305,10 @@ class makeCV_master2:
 
 	def Activated(self):
 		s="reconstruction." + self.classname
-		print "run import ..." + s
+		print("run import ..." + s)
 		t=runme2(self.classname)
-		print t.Label
-		print  s + " done, okay"
+		print(t.Label)
+		print(s + " done, okay")
 
 	def GetResources(self):
 		try:
@@ -392,8 +393,8 @@ class _Command():
 
 	def Activated(self):
 		#FreeCAD.ActiveDocument.openTransaction("create " + self.name)
-		if self.command <> '':
-			if self.modul <>'': modul=self.modul
+		if self.command != '':
+			if self.modul !='': modul=self.modul
 			else: modul=self.name
 			FreeCADGui.doCommand("import " + modul)
 			FreeCADGui.doCommand("import "+self.lmod)
@@ -416,7 +417,7 @@ def always():
 	return True
 
 def ondocument():
-	return FreeCADGui.ActiveDocument <> None
+	return FreeCADGui.ActiveDocument != None
 
 def onselection():
 	return len(FreeCADGui.Selection.getSelection())>0
@@ -431,7 +432,7 @@ def onselection3():
 	return len(FreeCADGui.Selection.getSelection())==3
 
 def onselex():
-	return len(FreeCADGui.Selection.getSelectionEx())<>0
+	return len(FreeCADGui.Selection.getSelectionEx())!=0
 
 def onselex1():
 	return len(FreeCADGui.Selection.getSelectionEx())==1
@@ -455,14 +456,14 @@ def c1a(menu,isactive,name,*info):
 	FreeCAD.tcmds6.append([menu,name1])
 
 def c2(menu,title,name,*info):
-	print info
+	print(info)
 	global _Command
 	title1="Reconstruction_"+title
 	FreeCADGui.addCommand(title1,_Command(name,*info))
 	FreeCAD.tcmds6.append([menu,title1])
 
 def c2a(menu,isactive,title,name,*info):
-	print info
+	print(info)
 	global _Command
 	t=_Command(name,*info)
 	title1="Reconstruction_"+title
@@ -494,7 +495,7 @@ if FreeCAD.GuiUp:
 
 	for cmd in FreeCADGui.listCommands():
 		if cmd.startswith("Reconstruction_"):
-			print cmd
+			print(cmd)
 
 
 
@@ -525,8 +526,8 @@ class Reconstruction ( Workbench ):
 			except: menues[tuple(c)]=[a]
 
 		for m in menues:
-			print m
-			print menues[m]
+			print(m)
+			print(menues[m])
 			self.appendMenu(list(m),menues[m])
 			self.appendToolbar(list(m)[0],menues[m])
 

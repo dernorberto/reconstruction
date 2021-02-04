@@ -243,7 +243,7 @@ def referencepoints(A,F2,sel):
 			[E,F]=endpunkte(c)
 			try:
 				M=schnittpunkt(A,F2,E,F)
-				print(round(M[0]),round(M[1]))
+				print((round(M[0]),round(M[1])))
 				try:
 					SP[(round(M[0]/10),round(M[1]/10))] += 1
 				except:
@@ -252,7 +252,7 @@ def referencepoints(A,F2,sel):
 				pass
 
 	for s in SP:
-		print (s,SP[s])
+		print((s,SP[s]))
 		if SP[s]>0:
 			p=App.ActiveDocument.addObject("Part::Vertex","Vertex")
 			p.X=s[0]*10
@@ -316,18 +316,18 @@ def drawquadrangle():
 	sels=[]
 	for s in Gui.Selection.getSelectionEx():
 		subs=s.SubObjects
-		print subs
+		print(subs)
 		sels += subs
-	print "selection ..."
-	print Gui.Selection.getSelectionEx()
-	print "!!"
+	print("selection ...")
+	print(Gui.Selection.getSelectionEx())
+	print("!!")
 	subs=sels
 	for ss in subs:
-		print ss
-	if len(subs)<>4:
+		print(ss)
+	if len(subs)!=4:
 		raise Exception("keine vier kanten")
 	for e in s.SubObjects: 
-		if e.__class__.__name__ <>'Edge':
+		if e.__class__.__name__ !='Edge':
 			raise Exception ("Non edge in selection" + str(e))
 	return _drawquadrangle(subs)
 
@@ -550,19 +550,19 @@ def perspos(target,nullpos,onepos,pol):
 
 def reverseperspos(target,nullpos,onepos,pol):
 	''' ortho position (target) to perspective position '''
-	print "reverse pos"
-	print target
-	print "null ",nullpos
-	print "one ",onepos
-	print "pol ",pol
+	print("reverse pos")
+	print(target)
+	print("null ",nullpos)
+	print("one ",onepos)
+	print("pol ",pol)
 	
 	f=np.sqrt(len2(pol,nullpos))
 	e=np.sqrt(len2(onepos,nullpos))
 	l=f*target/(target+f/e-1)
-	print "f ",f
-	print "e ",e
-	print "f/e ", f/e
-	print l
+	print("f ",f)
+	print("e ",e)
+	print("f/e ", f/e)
+	print(l)
 	
 	return l
 
@@ -629,7 +629,7 @@ def makeBase(l,z,lpol,zpol,lone,zone,zero):
 	e=np.sqrt(len2(lone,zero))
 	dist=e*f*l/((l-1)*e+f)
 	pa=pointat(zero,lpol,dist)
-	print (l,z,dist,pa)
+	print((l,z,dist,pa))
 
 #	lines.append(Part.makeLine(vec(zpol),vec(pa)))	
 #	lines.append(Part.makeCircle(10000,vec(pa)))
@@ -638,12 +638,12 @@ def makeBase(l,z,lpol,zpol,lone,zone,zero):
 	e=np.sqrt(len2(zone,zero))
 	dist=e*f*z/((z-1)*e+f)
 	pb=pointat(zero,zpol,dist)
-	print (l,z,dist,pb)
+	print((l,z,dist,pb))
 
 #	lines.append(Part.makeLine(vec(lpol),vec(pb)))	
 #	lines.append(Part.makeCircle(10000,vec(pb)))
 	pc=schnittpunkt(lpol,pb,zpol,pa)
-	print (pa,pb,pc)
+	print((pa,pb,pc))
 	lines.append(Part.makeCircle(15000,vec(pc)))
 	comp=Part.makeCompound(lines)
 #	Part.show(comp)

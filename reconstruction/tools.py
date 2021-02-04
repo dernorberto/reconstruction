@@ -3,20 +3,21 @@
 #
 
 
-import say
-reload(say)
-from say import *
+from . import say
+import importlib
+importlib.reload(say)
+from .say import *
 
 
-import cv2
+from . import cv2
 
 import reconstruction 
 import reconstruction.dbscan
 import reconstruction.smooth
-reload(reconstruction.smooth)
+importlib.reload(reconstruction.smooth)
 
 import reconstruction.projectiontools
-reload (reconstruction.projectiontools)
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 
 #import geodat
@@ -60,7 +61,7 @@ def analyzeLines(lines):
 		except: arclines[arc]=[l]
 
 	# create ordered lists index k, weights ss
-	ks=arcs.keys()
+	ks=list(arcs.keys())
 	ks.sort()
 	ks=np.array(ks)
 	ss=[arcs[k] for k in ks]
@@ -106,8 +107,8 @@ def showDirections(ks,ss,arcs,arclines,dw=2):
 		vi=ss2grad[i]
 		# look for arcs with relative maximum
 		if ss2grad[i]>ss2grad[i-1] and ss2grad[i+1]<vi:
-			print (round(ks[i],2),vi,i,'#')
-			print arclines[ks[i]]
+			print((round(ks[i],2),vi,i,'#'))
+			print(arclines[ks[i]])
 			lines=[]
 			lines.append(arclines[ks[i]])
 			# use neighbors arcs too
@@ -144,7 +145,7 @@ def drawFC(alllines):
 		nplines=[]
 		for ll in lines:
 			for l in ll:
-				print l
+				print(l)
 				[[x1,y1,x2,y2]] = l
 				points=[FreeCAD.Vector(x1,-y1,0),FreeCAD.Vector(x2,-y2,0)]
 				p1,p2 =np.array([x1,-y1]), np.array([x2,-y2])
@@ -261,7 +262,7 @@ def createLines(lines,dirs):
 		arc=dirs[c]
 		try: arc2lines[arc].append(l)
 		except: arc2lines[arc]=[l]
-		print (c,l,arc)
+		print((c,l,arc))
 
 	# create lines with same direction in same color
 	for arc in arc2lines:
@@ -281,7 +282,7 @@ def create_clusters(arc2lines,a,b,vobj):
 
 	ploton=False
 	ploton=True
-	dirs=arc2lines.keys()
+	dirs=list(arc2lines.keys())
 
 	[xh,y]=np.histogram(dirs,180)
 	zh=np.arange(180)
@@ -315,7 +316,7 @@ def create_clusters(arc2lines,a,b,vobj):
 	nn=15
 
 	counter=0
-	for cluster, members in clusters.iteritems(): counter += 1
+	for cluster, members in clusters.items(): counter += 1
 
 	colors=[]
 	n=counter
@@ -330,8 +331,8 @@ def create_clusters(arc2lines,a,b,vobj):
 
 	count=0
 
-	for cluster, members in clusters.iteritems():
-		print '--------Cluster {0}---member count--{1}----'.format(cluster,len(members))
+	for cluster, members in clusters.items():
+		print('--------Cluster {0}---member count--{1}----'.format(cluster,len(members)))
 		x=[]; y=[]; lc=[]
 		members.sort()
 
@@ -380,8 +381,8 @@ def create_clusters(arc2lines,a,b,vobj):
 		vobj.mpl.draw()
 
 	count=0
-	for cluster, members in clusters.iteritems():
-		print '--------Cluster {0}---member count--{1}----'.format(cluster,len(members))
+	for cluster, members in clusters.items():
+		print('--------Cluster {0}---member count--{1}----'.format(cluster,len(members)))
 		c=colors[count]
 		if cluster == -1:
 			c=(1.0,1.0,1.0)

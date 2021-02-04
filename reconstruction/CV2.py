@@ -10,7 +10,8 @@
 __vers__="30.05.2016  0.2"
 
 import reconstruction.say
-reload(reconstruction.say)
+import importlib
+importlib.reload(reconstruction.say)
 from reconstruction.say import *
 
 
@@ -20,7 +21,7 @@ except:
 	__dir__='/home/thomas/.FreeCAD/Mod/reconstruction'
 
 
-import cv2
+from . import cv2
 
 matplotlib.use('Qt4Agg')
 matplotlib.rcParams['backend.qt4']='PySide'
@@ -30,17 +31,17 @@ from matplotlib.figure import Figure
 
 import reconstruction
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 import reconstruction.tools as tools
-reload(reconstruction.tools)
+importlib.reload(reconstruction.tools)
 
 import reconstruction.configuration as config
-reload(reconstruction.configuration) 
+importlib.reload(reconstruction.configuration) 
 modes=config.modes
 
 import reconstruction.mpl
-reload(reconstruction.mpl)
+importlib.reload(reconstruction.mpl)
 
 lasttime=0
 countUpdater=0
@@ -114,8 +115,8 @@ def dockit():
 	last=None
 	for c in w2.children():
 		if c.__class__.__name__ =='MyDockWidget':
-			print c.windowTitle()
-			if last <> None:
+			print(c.windowTitle())
+			if last != None:
 				w2.tabifyDockWidget(last, c)
 			last=c
 
@@ -548,7 +549,7 @@ HorizontalLayout:
 
 			w=e.size().width()
 			h=e.size().height()
-			print(w,h)
+			print((w,h))
 			obj.plot2()
 			uk(e)
 
@@ -561,7 +562,7 @@ HorizontalLayout:
 	def add_button(self,idname,label,method):
 		bt=QtGui.QPushButton(label)
 		bt.clicked.connect(lambda:sayErr("button "+ label +" clicked 1"))
-		if method <>None:
+		if method !=None:
 			if method.__class__.__name__ == "str":
 				obj=self.obj
 				gui=self
@@ -767,7 +768,7 @@ HorizontalLayout:
 					else: wid.setCheckState(QtCore.Qt.Unchecked)
 			except: 
 				# hier fhelrhandling einbauen
-				if wid <> None: sayexc()
+				if wid != None: sayexc()
 
 
 	#
@@ -873,7 +874,7 @@ def run_myaction(obj=None,gui=None):
 def run_elevationgrid(obj=None,app=None):
 
 	import reconstruction.elevationgrid
-	reload(reconstruction.elevationgrid)
+	importlib.reload(reconstruction.elevationgrid)
 	[rbf,rbf2,x,y,z,zi,zi2]=reconstruction.elevationgrid.createElevationGrid('cubic',True,obj.sourceObject,obj.gridCount+1)
 	FreeCAD.ActiveDocument.recompute()
 
@@ -891,7 +892,7 @@ def run_pathfinder (obj,app):
 	''' find pathes(connected pointsets) in an image'''
 
 	import reconstruction.pathfinder
-	reload(reconstruction.pathfinder)
+	importlib.reload(reconstruction.pathfinder)
 
 	# load a image and calculate the pathlist pl2
 	pf=reconstruction.pathfinder.PathFinder()
@@ -909,9 +910,9 @@ def run_pathanalyzer(obj,app=None,forcereload=True,createFC=False):
 	''' split path into intervals '''
 	
 	import reconstruction.pathanalyser
-	if forcereload: reload(reconstruction.pathanalyser)
+	if forcereload: importlib.reload(reconstruction.pathanalyser)
 	
-	if app <> None:
+	if app != None:
 		FreeCAD.app=app
 
 	try: obj.Proxy.pl2
@@ -1336,7 +1337,7 @@ def execute_HoughLines(proxy,obj):
 		[[x1,y1,x2,y2]] = l
 		fl=tools.fcline(x1,-y1,x2,-y2)
 		fclines.append(fl)       
-		print (x1,y1,x2,y2)
+		print((x1,y1,x2,y2))
 		a=cv2.line(img,(x1,y1),(x2,y2),(0,255,0),1)
 
 	# data for following nodes
@@ -1670,10 +1671,10 @@ class _CV(Animation._Actor):
 
 		if obj.invert: self.img=255-self.img
 
-		if rc <> None: say(("executed " + obj.mode + " rc=",rc))
+		if rc != None: say(("executed " + obj.mode + " rc=",rc))
 
 		try:
-			if obj.ViewObject.Proxy.edit <> None:
+			if obj.ViewObject.Proxy.edit != None:
 #				say("erzeuge dialig")
 				try:
 					zz=obj.ViewObject.Proxy.Object.Proxy.app.mpl

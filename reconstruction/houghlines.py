@@ -7,13 +7,14 @@
 #-- GNU Lesser General Public License (LGPL)
 #-------------------------------------------------
 
-import cv2
+from . import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
 import PySide
 from PySide import QtCore, QtGui, QtSvg
 import Part,Draft
+import importlib
 
 f='/home/thomas/Dokumente/freecad_buch/b186_image_processing_opencv/P1210191.JPG'
 # f='/home/thomas/Dokumente/freecad_buch/b186_image_processing_opencv/bn_454.png'
@@ -84,7 +85,7 @@ def main(filename,canny1=100,canny2=200,rho=1,theta=1, threshold=10, minLineLeng
 		fimg.Placement.Base.z=-10
 		FreeCADGui.SendMsgToActiveView("ViewFit")
 
-	print ("lines:",k)
+	print(("lines:",k))
 
 
 
@@ -234,7 +235,7 @@ import FreeCAD,FreeCADGui
 class MyApp(object):
 
 	def run(self):
-		print "run app"
+		print("run app")
 		filename=self.root.ids['bl'].text()
 		#main(s.text())
 		main(
@@ -254,8 +255,8 @@ class MyApp(object):
 
 
 	def getfn(self):
-		fileName = QtGui.QFileDialog.getOpenFileName(None,u"Open File",u"/home/thomas/Bilder/houghlines",u"Images (*.png *.xpm *.jpg)");
-		print fileName
+		fileName = QtGui.QFileDialog.getOpenFileName(None,"Open File","/home/thomas/Bilder/houghlines","Images (*.png *.xpm *.jpg)");
+		print(fileName)
 		s=self.root.ids['bl']
 		s.setText(fileName[0])
 
@@ -264,12 +265,12 @@ class MyApp(object):
 
 def run():
 	
-	print "huhu"
+	print("huhu")
 	app=MyApp()
 
 	import geodat
 	import geodat.miki as miki
-	reload(miki)
+	importlib.reload(miki)
 
 	miki=miki.Miki()
 	miki.app=app

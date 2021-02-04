@@ -4,6 +4,7 @@ from pivy.coin import *
  
 from PySide import QtCore
 from PySide.QtGui import QApplication, QCursor 
+import importlib
 
 '''
 import geodat
@@ -15,11 +16,11 @@ reload(miki)
 '''
 
 import reconstruction
-reload (reconstruction.projectiontools)
+importlib.reload (reconstruction.projectiontools)
 from reconstruction.projectiontools import *
 
 import reconstruction.miki as miki
-reload(miki)
+importlib.reload(miki)
 
 
 import numpy as np
@@ -126,7 +127,7 @@ class leftpoint:
 			button=event.getButton()
 
 			# process only left buttons 
-			if button <>1: return
+			if button !=1: return
 
 
 
@@ -157,8 +158,8 @@ class leftpoint:
 			
 			[lp,rp,zp]=self.dialog.polset
 			[p0,p2,p3,p4]=self.dialog.basepoints
-			print "berechnung  basepoints"
-			print self.dialog.basepoints
+			print("berechnung  basepoints")
+			print(self.dialog.basepoints)
 			
 			
 			# fehlerausgleich
@@ -192,7 +193,7 @@ class leftpoint:
 				
 				lval2=perspos(pp,ls2,ls,lp)
 				lval2=round(lval2,4)
-				print ("y lval lval2", lval,lval2)
+				print(("y lval lval2", lval,lval2))
 
 				lls=ls
 				lls2=ls2
@@ -206,12 +207,12 @@ class leftpoint:
 
 				zval2=perspos(pp,ls,ls2,zp)
 				zval2=round(lval2,4)
-				print ("zval zval2", zval,zval2)
+				print(("zval zval2", zval,zval2))
 
 				vls=ls
 				vls2=ls2
 				
-				print "lval",lval
+				print("lval",lval)
 
 			if self.mode=='r':
 			###	lines.append(Part.makeLine(point,self.dialog.ob.lpol))
@@ -223,7 +224,7 @@ class leftpoint:
 				
 				rval2=perspos(pp,ls2,ls,rp)
 				rval2=round(rval2,4)
-				print ("y rval ", rval,rval2)
+				print(("y rval ", rval,rval2))
 
 				lls=ls
 				lls2=ls2
@@ -237,12 +238,12 @@ class leftpoint:
 
 				zval2=perspos(pp,ls,ls2,zp)
 				zval2=round(zval2,4)
-				print ("zval zval2", zval,zval2)
+				print(("zval zval2", zval,zval2))
 
 				vls=ls
 				vls2=ls2
 				
-				print "rval",rval
+				print("rval",rval)
 
 			if self.mode=='z':
 			###	lines.append(Part.makeLine(point,self.dialog.ob.lpol))
@@ -256,7 +257,7 @@ class leftpoint:
 				
 				lval2=perspos(pp,ls2,ls,lp)
 				lval2=round(lval2,4)
-				print ("y lval lval2", lval,lval2)
+				print(("y lval lval2", lval,lval2))
 
 
 				ls=schnittpunkt(rp,pp,p3,lp)
@@ -268,7 +269,7 @@ class leftpoint:
 				
 				rval2=perspos(pp,ls2,ls,rp)
 				rval2=round(rval2,4)
-				print ("y rval ", rval,rval2)
+				print(("y rval ", rval,rval2))
 
 
 
@@ -304,11 +305,11 @@ class leftpoint:
 			yp="LP"+str(time.time())
 			mylp=createMP2(yp,docs().m(),FreeCAD.Vector(-lval*sx,rval*sy,zval*sz).add(self.dialog.mpos))
 			mylp.Label=str([str(-lval),str(rval),str(zval)])
-			print "-----------------------"
-			print ("pos lval ",FreeCAD.Vector(-lval*sx,rval*sy,zval*sz))
-			print ("mpos",(self.dialog.mpos))
+			print("-----------------------")
+			print(("pos lval ",FreeCAD.Vector(-lval*sx,rval*sy,zval*sz)))
+			print(("mpos",(self.dialog.mpos)))
 			mylp.pos=FreeCAD.Vector(-lval*sx,rval*sy,zval*sz).add(self.dialog.mpos)
-			print ("position",mylp.pos)
+			print(("position",mylp.pos))
 			
 			mylpi=createMP2(yp,docs().i(),point)
 			
@@ -368,7 +369,7 @@ class leftpoint:
 			
 			lines=[]
 			
-			if self.mode<>'z':
+			if self.mode!='z':
 				lines.append(Part.makeLine(point,vec(zone)))
 				lines.append(Part.makeLine(point,vec(sc)))
 			if self.mode=='l':
@@ -386,7 +387,7 @@ class leftpoint:
 #			lines.append(Part.makeLine(point,vec(rone)))
 #			lines.append(Part.makeLine(point,vec(zone)))
 
-			if self.mode<>'z':
+			if self.mode!='z':
 				comp=Part.makeCompound(lines)
 				Part.show(comp)
 				App.ActiveDocument.ActiveObject.ViewObject.LineColor=(1.0,0.0,1.0)
@@ -566,9 +567,9 @@ def draw(dialog,size):
 		except:
 			pass
 
-	if sr<>None: obj.rpol=vec(sr)
-	if sl<>None: obj.lpol=vec(sl)
-	if sz<>None: obj.zpol=vec(sz)
+	if sr!=None: obj.rpol=vec(sr)
+	if sl!=None: obj.lpol=vec(sl)
+	if sz!=None: obj.zpol=vec(sz)
 
 	docs().run()
 
@@ -786,7 +787,7 @@ class MyApp(object):
 		try:
 			d=docs()
 			d.run()
-			print App.ActiveDocument.Label
+			print(App.ActiveDocument.Label)
 			self.ob=App.ActiveDocument.Perspective
 		except:
 			self.ob=_createPerspective()
@@ -794,7 +795,7 @@ class MyApp(object):
 
 		draw(self,self.root.ids['size'].value())
 		self.line=None
-		print "run app"
+		print("run app")
 		self.root.ids['moveBtn'].setEnabled(True)
 		self.root.ids['create'].setEnabled(False)
 		draw(self,self.root.ids['size'].value())
@@ -827,7 +828,7 @@ class MyApp(object):
 
 	def line(self):
 		self.line=line(self,self.root.ids['size'].value())
-		print self.line
+		print(self.line)
 		#self.root.ids['moveBtn'].setEnabled(False)
 		# self.root.ids['stopBtn'].setEnabled(True)
 
@@ -842,7 +843,7 @@ class MyApp(object):
 
 
 	def finish(self):
-		print self.line
+		print(self.line)
 		if self.line:
 			self.line.finish()
 		self.line=None
@@ -857,15 +858,15 @@ class MyApp(object):
 	def resize(self):
 		print("resize")
 		try:
-			print  self.root.ids['size'].value()
-			print  self.line.size
+			print(self.root.ids['size'].value())
+			print(self.line.size)
 			self.line.size=self.root.ids['size'].value()
 		except:
 			pass
 		draw(self,self.root.ids['size'].value())
 
 	def showmode(self):
-		print "showmode"
+		print("showmode")
 		self.ob.showhorizon=self.root.ids['horizon'].isChecked()
 		self.ob.showhelper=self.root.ids['helper'].isChecked()
 		self.ob.showhelper=self.root.ids['helper'].isChecked()
@@ -882,8 +883,8 @@ class MyApp(object):
 
 	def creategrid(self):
 			''' create equidistant point set'''
-			print "gridsize"
-			print self.root.ids['gridsize'].value()
+			print("gridsize")
+			print(self.root.ids['gridsize'].value())
 			gs=self.root.ids['gridsize'].value()
 			gstab=[ 0.01,0.02,0.05,0.1,1.0/6,0.2,1.0/3,0.5,1,2,5,10]
 			self.root.ids['gridsizelabel'].setText("Relative distance of the grid lines : " +str(gstab[gs]))
@@ -900,18 +901,18 @@ class MyApp(object):
 #				else:
 					g.ViewObject.show()
 #					print g.Label," !!"
-			print "okay"
+			print("okay")
 
 	def togglegrid(self):
 			''' create equidistant point set'''
 			for g in self.grids:
 				if g.ViewObject.Visibility:
 					g.ViewObject.hide()
-					print g.Label
+					print(g.Label)
 #				else:
 #					g.ViewObject.show()
 #					print g.Label," !!"
-			print "okay"
+			print("okay")
 
 
 
@@ -932,12 +933,12 @@ class MyApp(object):
 		self.refpoint=FreeCAD.Vector()
 		self.mpos=FreeCAD.Vector()
 		try:
-			print " change Basepoint"
-			print " selected:"
+			print(" change Basepoint")
+			print(" selected:")
 			sel=Gui.Selection.getSelection()[0]
-			print sel.Label
+			print(sel.Label)
 			if sel.Label in ['P0','P1','P2','P3','P4','P5']:
-				print "nicht moegliche units noch nicht gesetzt, nutze P3 und breche ab"
+				print("nicht moegliche units noch nicht gesetzt, nutze P3 und breche ab")
 				return
 			p3=numpo(sel.base)
 			p2=numpo(sel.lunit)
@@ -945,17 +946,17 @@ class MyApp(object):
 			p0=numpo(sel.zunit)
 			self.refpoint=sel.pos
 			self.mpos=sel.pos
-			print "3D pos:",self.mpos
+			print("3D pos:",self.mpos)
 		except:
 			pass
 
 		self.polset=[lp,rp,zp]
 		self.basepoints=[p0,p2,p3,p4]
-		print "p3 ",p3
-		print "p2 ",p2
-		print "p4 ",p4
-		print "p0 ",p0
-		print "refpoint ", self.refpoint
+		print("p3 ",p3)
+		print("p2 ",p2)
+		print("p4 ",p4)
+		print("p0 ",p0)
+		print("refpoint ", self.refpoint)
 		self.creategrid()
 		return
 
@@ -963,50 +964,50 @@ class MyApp(object):
 		try:
 			s=Gui.Selection.getSelectionEx()[0]
 			s.Object
-			print s.Object.Label
-			print s.PickedPoints
-			print 
+			print(s.Object.Label)
+			print(s.PickedPoints)
+			print() 
 			s.SubElementNames # Vertex
-			print s.SubObjects[0] # entsprichte PickedPoints[0]
+			print(s.SubObjects[0]) # entsprichte PickedPoints[0]
 		except:
 			pass
 
 	def scalepoint(self):
-		print "scale"
+		print("scale")
 		sels=Gui.Selection.getSelection()
 		if sels == []: return
 		sel=sels[0]
-		print sel.Label
+		print(sel.Label)
 		name=sel.Label
 		
 		import re
 		m = re.match(r"axis cross (.*)", name)
 		if m:
-			print "gefunden"
+			print("gefunden")
 			name=m.group(1)
-			print "gefunden", name
+			print("gefunden", name)
 			jj=App.ActiveDocument.getObjectsByLabel(name)
-			print jj
+			print(jj)
 			if len(jj) == 1:
 				sel=jj[0]
 			else: return
-			print "verarbeite ",sel
+			print("verarbeite ",sel)
 		
 		docs().i()
 		yy="axis cross "+name
-		print ("!"+yy+"!")
+		print(("!"+yy+"!"))
 		obs=App.ActiveDocument.getObjectsByLabel("axis cross "+name)
-		print obs
+		print(obs)
 		if len(obs)>0:
-			print "gefunden"
-			print  obs[0]
+			print("gefunden")
+			print(obs[0])
 			obj=obs[0]
 			scaler=self.root.ids['scalepoint'].value()/10.0
 			if scaler==0:
 				scaler=0.1
 			self.root.ids['scalepointlabel'].setText("Scale factor of the axis cross " + str(self.root.ids['scalepoint'].value()/10.0))
 #			scaler=-1.0
-			print "scaler value is ", scaler
+			print("scaler value is ", scaler)
 			lines=[]
 			point=sel.clickPoint
 			rone=sel.runit
@@ -1023,7 +1024,7 @@ class MyApp(object):
 			j=Part.makeLine(FreeCAD.Vector(),vec(zone).sub(point).multiply(scaler))
 			#j.Placement.Base=point
 			lines.append(j)
-			print lines
+			print(lines)
 
 
 
